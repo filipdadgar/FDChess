@@ -5,25 +5,28 @@
     /// </summary>
     public class Game
     {
-        /// <summary>
-        /// Chess Board
-        /// </summary>
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string State { get; set; }
         public Board Board { get; set; }
 
-        /// <summary>
-        /// Chess Pieces
-        /// </summary>
-        public Piece[] Pieces { get; set; }
-
-        /// <summary>
-        /// Chess Game Constructor
-        /// </summary>
         public Game()
         {
             Board = new Board();
-            Pieces = new Piece[32];
         }
 
+        public Game(int id, string name, string state, Board board)
+        {
+            Id = id;
+            Name = name;
+            State = state;
+            Board = board;
+        }
 
+        public override string ToString()
+        {
+            return $"{Name} - {State}";
+        }
     }
+
 }

@@ -1,29 +1,43 @@
-﻿namespace FDChess.Model
+﻿using System.Text.Json.Serialization;
+
+namespace FDChess.Model;
+
+public abstract class Piece
 {
-    /// <summary>
-    /// Chess Piece Class
-    /// </summary>
-    public class Piece
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public Position Position { get; set; }
+    public string Color { get; set; }
+
+    // Parameterless constructor for deserialization
+    protected Piece() { }
+
+    // Constructor with parameters
+    [JsonConstructor]
+    protected Piece(int id, string name, Position position, string color)
     {
-        /// <summary>
-        /// Chess Piece Constructor
-        /// </summary>
-        public Piece()
-        {
-        }
+        Id = id;
+        Name = name;
+        Position = position;
+        Color = color;
+    }
 
-        public Piece(int id)
-        {
-            Id = id;
-        }
+    public override string ToString()
+    {
+        return $"{Name} at {Position}";
+    }
 
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public override string ToString()
-        {
-            return $"Piece {Id}: {Name} - {Description}";
-        }
+    // Abstract method requiring implementation in derived classes
+    public abstract bool IsMoveValid(Position newPosition, Board board);
 
+    // Move method to update the position if the move is valid
+    public bool Move(Position newPosition, Board board)
+    {
+        if (IsMoveValid(newPosition, board))
+        {
+            Position = newPosition;
+            return true;
+        }
+        return false;
     }
 }

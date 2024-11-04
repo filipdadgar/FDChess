@@ -1,4 +1,6 @@
 
+using FDChess.Helper;
+using FDChess.Interfaces;
 using FDChess.Services;
 
 namespace FDChess
@@ -10,9 +12,14 @@ namespace FDChess
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.d
-            builder.Services.AddSingleton<ChessService>();
+            builder.Services.AddSingleton<IChessService, ChessService>();
 
-            builder.Services.AddControllers();
+
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new PieceConverter());
+                });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
