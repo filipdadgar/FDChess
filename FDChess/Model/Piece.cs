@@ -1,13 +1,12 @@
 ﻿using System.Text.Json.Serialization;
-
-namespace FDChess.Model;
+using FDChess.Model;
 
 public abstract class Piece
 {
     public int Id { get; set; }
-    public string Name { get; set; }
+    public string? Name { get; set; }
     public Position Position { get; set; }
-    public string Color { get; set; }
+    public string? Color { get; set; }
 
     // Parameterless constructor for deserialization
     protected Piece() { }

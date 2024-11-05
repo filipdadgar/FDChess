@@ -1,4 +1,5 @@
-﻿using FDChess.Interfaces;
+﻿using System.Text.Json;
+using FDChess.Interfaces;
 using FDChess.Model;
 
 namespace FDChess.Services
@@ -9,7 +10,39 @@ namespace FDChess.Services
     public class ChessService : IChessService
     {
         // Variables
-        private string _gameState = string.Empty;
+        private Game _currentGame;
+
+        public ChessService()
+        {
+            // Initialize the game with a default state
+            var board = new Board
+            {
+                Id = 1,
+                Name = "Default Game",
+                Description = "Initial game state",
+                Pieces = InitializeDefaultPieces()
+            };
+            _currentGame = new Game(1, "Default Game", "active", board);
+        }
+
+        private List<Piece> InitializeDefaultPieces()
+        {
+            // Initialize the board with default pieces
+            return new List<Piece>
+            {
+                new Rook(1, new Position(0, 0), "white"),
+                new Knight(2, new Position(0, 1), "white"),
+                // Add other pieces...
+                new Pawn(9, new Position(1, 0), "white"),
+                // Add other pawns...
+                new Rook(17, new Position(7, 0), "black"),
+                new Knight(18, new Position(7, 1), "black"),
+                // Add other pieces...
+                new Pawn(25, new Position(6, 0), "black"),
+                // Add other pawns...
+            };
+        }
+
 
         private bool ValidateMove(Board board)
         {
@@ -23,7 +56,7 @@ namespace FDChess.Services
             bool isValidMove = ValidateMove(request);
             if (!isValidMove)
             {
-                return "Invalid move";
+                return JsonSerializer.Serialize(new { message = "Invalid move" });
             }
 
             // Update the board state (this is a placeholder, implement actual update logic)
@@ -32,23 +65,29 @@ namespace FDChess.Services
             // Check for special conditions (e.g., check, checkmate)
             string gameState = CheckGameState(request);
 
+            // Update the current game state
+            _currentGame.Board = request;
+            _currentGame.State = gameState;
+
             // Return the new game state or a confirmation message
-            return gameState;
+            return JsonSerializer.Serialize(new { message = gameState });
         }
+
 
         public string GetGameState()
         {
-            return _gameState;
+            return JsonSerializer.Serialize(_currentGame);
         }
 
         public void SetGameState(string gameState)
         {
-            _gameState = gameState;
+            _currentGame = JsonSerializer.Deserialize<Game>(gameState)!;
         }
 
         public Game CreateGame(string name, string state, Board board)
         {
-            return new Game(1, name, state, board);
+            _currentGame = new Game(1, name, state, board);
+            return _currentGame;
         }
 
         public Piece? AddPieceToBoard(Board board, string name, Position position, string color)

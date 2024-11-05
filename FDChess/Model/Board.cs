@@ -8,7 +8,7 @@
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public List<Piece?> Pieces { get; set; }
+        public List<Piece> Pieces { get; set; } = new List<Piece>();
 
         public Board()
         {
