@@ -1,4 +1,6 @@
-﻿namespace FDChess.Model
+﻿using System.Text.Json.Serialization;
+
+namespace FDChess.Model
 {
     /// <summary>
     /// Chess Game Class
@@ -10,6 +12,7 @@
         public string State { get; set; }
         public Board Board { get; set; }
 
+        [JsonConstructor]
         public Game()
         {
             Board = new Board();

@@ -4,6 +4,7 @@ using FDChess.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using FDChess.Helper;
 
 namespace FDChess.Controllers
 {
@@ -19,27 +20,37 @@ namespace FDChess.Controllers
         }
 
         [HttpPost("move")]
-        public IActionResult MakeMove([FromBody] MoveRequest request)
+        public IActionResult MakeMove([FromBody] MoveRequest moveRequest)
         {
-            if (request == null || request.Board == null || request.NewPosition.Equals(default(Position)))
-            {
-                return BadRequest("Invalid move request.");
-            }
-
             try
             {
-                var result = _chessService.MakeMove(request.Board, request.NewPosition);
-                var response = new { message = result };
-                return Ok(response);
+                var gameState = _chessService.GetGameState();
+                var options = new JsonSerializerOptions { Converters = { new PieceConverter() } };
+                var game = JsonSerializer.Deserialize<Game>(gameState, options);
+                var board = game.Board;
+                var piece = board.Pieces.FirstOrDefault(p => p.Id == moveRequest.PieceId);
+
+                if (piece == null)
+                {
+                    return BadRequest("Invalid piece");
+                }
+
+                // Update piece position
+                piece.Position = new Position
+                {
+                    Row = moveRequest.NewPosition.Row,
+                    Column = moveRequest.NewPosition.Column
+                };
+
+                // Save updated game state
+                _chessService.SetGameState(JsonSerializer.Serialize(game, options));
+                return Ok(game); // Return the updated game state
             }
             catch (Exception ex)
             {
-                var errorResponse = new { error = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-
-
 
         [HttpGet("state")]
         public IActionResult GetGameState()
@@ -55,7 +66,7 @@ namespace FDChess.Controllers
                         Id = 1,
                         Name = "Default Board",
                         Description = "Initial game state",
-                        Pieces = InitializeDefaultPieces()
+                        Pieces = _chessService.InitializeDefaultPieces()
                     };
                     var defaultGame = new Game
                     {
@@ -74,23 +85,25 @@ namespace FDChess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-
-        private List<Piece?> InitializeDefaultPieces()
+        
+        [HttpPost("reset")]
+        public IActionResult ResetGame()
         {
-            // Initialize the board with default pieces
-            var pieces = new List<Piece?>
+            try
             {
-                // Add pieces for both players
-                // Example: new Rook(1, "Rook", new Position(0, 0), "white"),
-                // Add other pieces similarly
-            };
-            return pieces;
+                _chessService.ResetGame();
+                return Ok(new { message = "Game has been reset" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
     }
 
     public class MoveRequest
     {
-        public required Board Board { get; set; }
-        public required Position NewPosition { get; set; }
+        public int PieceId { get; set; }
+        public Position NewPosition { get; set; }
     }
 }

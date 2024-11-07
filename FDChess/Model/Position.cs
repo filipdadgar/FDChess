@@ -1,45 +1,47 @@
-﻿namespace FDChess.Model;
+﻿using System.Text.Json.Serialization;
 
-public struct Position
+namespace FDChess.Model
 {
-    public int Row { get; set; }
-    public int Column { get; set; }
-
-    public Position(int row, int column)
+    public struct Position : IEquatable<Position>
     {
-        Row = row;
-        Column = column;
-    }
+        public int Row { get; set; }
+        public int Column { get; set; }
 
-    // Parameterless constructor for deserialization
-    public Position() : this(0, 0) { }
+        [JsonConstructor]
+        public Position(int row, int column)
+        {
+            Row = row;
+            Column = column;
+        }
 
-    // Conversion constructor for positions like "A1" to (0, 0)
-    public Position(string pos)
-    {
-        // Implement conversion logic
-        Row = pos[1] - '1';
-        Column = pos[0] - 'A';
-    }
+        public Position(string pos)
+        {
+            Row = pos[1] - '1';
+            Column = pos[0] - 'A';
+        }
 
-    // ToString method to convert back to chess notation (e.g., "A1")
-    public override string ToString()
-    {
-        return $"{(char)('A' + Column)}{Row + 1}";
-    }
+        public override string ToString()
+        {
+            return $"{(char)('A' + Column)}{Row + 1}";
+        }
 
-    // Equality comparison to simplify checking positions
-    public override bool Equals(object obj)
-    {
-        if (obj is Position other)
+        public bool Equals(Position other)
         {
             return Row == other.Row && Column == other.Column;
         }
-        return false;
-    }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(Row, Column);
+        public override bool Equals(object obj)
+        {
+            if (obj is Position other)
+            {
+                return Row == other.Row && Column == other.Column;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Row, Column);
+        }
     }
 }

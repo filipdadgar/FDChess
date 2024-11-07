@@ -1,13 +1,16 @@
-﻿namespace FDChess.Model
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using FDChess.Helper;
+
+namespace FDChess.Model
 {
-    /// <summary>
-    /// Chess Board Class
-    /// </summary>
     public class Board
     {
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+
+        [JsonConverter(typeof(PieceListConverter))]
         public List<Piece> Pieces { get; set; } = new List<Piece>();
 
         public Board()
@@ -15,6 +18,7 @@
             Pieces = new List<Piece?>();
         }
 
+        [JsonConstructor]
         public Board(int id) : this()
         {
             Id = id;
@@ -48,7 +52,6 @@
             var currentRow = startRow + rowDirection;
             var currentCol = startCol + colDirection;
 
-            // Traverse from start to end, checking for pieces in each square
             while (currentRow != endRow || currentCol != endCol)
             {
                 var position = new Position(currentRow, currentCol);

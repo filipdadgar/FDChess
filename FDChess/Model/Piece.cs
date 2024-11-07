@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿// Piece.cs
+using System.Text.Json.Serialization;
 using FDChess.Model;
 
 public abstract class Piece

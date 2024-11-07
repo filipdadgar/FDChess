@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿// Pieces.cs
+using System.Text.Json.Serialization;
 
 namespace FDChess.Model
 {
@@ -37,13 +38,12 @@ namespace FDChess.Model
         }
     }
 
-
     public class Rook : Piece
     {
         public Rook() : base() { }
 
         [JsonConstructor]
-        public Rook(int id, Position position, string color) 
+        public Rook(int id, Position position, string color)
             : base(id, "Rook", position, color) { }
 
         public override bool IsMoveValid(Position newPosition, Board board)
@@ -63,7 +63,7 @@ namespace FDChess.Model
         public Knight() : base() { }
 
         [JsonConstructor]
-        public Knight(int id, Position position, string color) 
+        public Knight(int id, Position position, string color)
             : base(id, "Knight", position, color) { }
 
         public override bool IsMoveValid(Position newPosition, Board board)
@@ -81,7 +81,7 @@ namespace FDChess.Model
         public Bishop() : base() { }
 
         [JsonConstructor]
-        public Bishop(int id, Position position, string color) 
+        public Bishop(int id, Position position, string color)
             : base(id, "Bishop", position, color) { }
 
         public override bool IsMoveValid(Position newPosition, Board board)
@@ -97,8 +97,9 @@ namespace FDChess.Model
     public class Queen : Piece
     {
         public Queen() : base() { }
+
         [JsonConstructor]
-        public Queen(int id, Position position, string color) 
+        public Queen(int id, Position position, string color)
             : base(id, "Queen", position, color) { }
 
         public override bool IsMoveValid(Position newPosition, Board board)
@@ -120,7 +121,7 @@ namespace FDChess.Model
         public King() : base() { }
 
         [JsonConstructor]
-        public King(int id, Position position, string color) 
+        public King(int id, Position position, string color)
             : base(id, "King", position, color) { }
 
         public override bool IsMoveValid(Position newPosition, Board board)
@@ -132,5 +133,4 @@ namespace FDChess.Model
             return rowDiff <= 1 && colDiff <= 1;
         }
     }
-
 }

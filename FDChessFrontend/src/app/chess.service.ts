@@ -6,15 +6,19 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ChessService {
-  private apiUrl = 'http://localhost:5141/api/Chess';
+  private baseUrl = 'http://localhost:5141/api/chess'; // Update this to match your backend URL
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   getGameState(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/state`);
+    return this.http.get<any>(`${this.baseUrl}/state`);
   }
 
   makeMove(moveRequest: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/move`, moveRequest);
+    return this.http.post<any>(`${this.baseUrl}/move`, moveRequest);
+  }
+
+  resetGame(): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/reset`, {});
   }
 }
