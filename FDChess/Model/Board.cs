@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 using FDChess.Helper;
 
@@ -15,7 +16,7 @@ namespace FDChess.Model
 
         public Board()
         {
-            Pieces = new List<Piece?>();
+            Pieces = new List<Piece>();
         }
 
         [JsonConstructor]
@@ -37,6 +38,12 @@ namespace FDChess.Model
         public bool IsPositionOccupied(Position position)
         {
             return GetPieceAtPosition(position) != null;
+        }
+
+        public bool IsPositionOccupiedByOpponent(Position position, string color)
+        {
+            var piece = GetPieceAtPosition(position);
+            return piece != null && piece.Color != color;
         }
 
         public bool IsPathClear(Position start, Position end)
@@ -85,8 +92,10 @@ namespace FDChess.Model
             var piece = GetPieceAtPosition(from);
             if (piece == null) throw new InvalidOperationException("No piece at the starting position.");
             if (!piece.IsMoveValid(to, this)) throw new InvalidOperationException("Invalid move for the piece.");
-            if (IsPositionOccupied(to)) throw new InvalidOperationException("Position is already occupied by another piece.");
-
+            if (IsPositionOccupiedByOpponent(to, piece.Color))
+            {
+                RemovePiece(to);
+            }
             piece.Position = to;
         }
     }

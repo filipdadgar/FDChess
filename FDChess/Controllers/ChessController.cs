@@ -18,7 +18,8 @@ namespace FDChess.Controllers
         {
             _chessService = chessService;
         }
-
+        
+        // ChessController.cs
         [HttpPost("move")]
         public IActionResult MakeMove([FromBody] MoveRequest moveRequest)
         {
@@ -28,19 +29,8 @@ namespace FDChess.Controllers
                 var options = new JsonSerializerOptions { Converters = { new PieceConverter() } };
                 var game = JsonSerializer.Deserialize<Game>(gameState, options);
                 var board = game.Board;
-                var piece = board.Pieces.FirstOrDefault(p => p.Id == moveRequest.PieceId);
 
-                if (piece == null)
-                {
-                    return BadRequest("Invalid piece");
-                }
-
-                // Update piece position
-                piece.Position = new Position
-                {
-                    Row = moveRequest.NewPosition.Row,
-                    Column = moveRequest.NewPosition.Column
-                };
+                board.MovePiece(moveRequest.CurrentPosition, moveRequest.NewPosition);
 
                 // Save updated game state
                 _chessService.SetGameState(JsonSerializer.Serialize(game, options));
@@ -99,11 +89,26 @@ namespace FDChess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+        
+        // ChessController.cs
+        [HttpGet("moves/{pieceId}")]
+        public IActionResult GetPossibleMoves(int pieceId)
+        {
+            try
+            {
+                var possibleMoves = _chessService.GetPossibleMoves(pieceId);
+                return Ok(possibleMoves);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
     }
 
     public class MoveRequest
     {
-        public int PieceId { get; set; }
+        public Position CurrentPosition { get; set; }
         public Position NewPosition { get; set; }
     }
 }

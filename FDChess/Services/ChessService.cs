@@ -14,8 +14,7 @@ namespace FDChess.Services
         // Variables
         private Game _currentGame;
         private readonly JsonSerializerOptions _options;
-
-
+        
         public ChessService()
         {
             _options = new JsonSerializerOptions { Converters = { new PieceConverter() } };
@@ -70,46 +69,33 @@ namespace FDChess.Services
             };
         }
 
-
         private bool ValidateMove()
         {
             // Implement move validation logic
             return true; // Placeholder return value
         }
-
+        
         public string MakeMove(MoveRequest moveRequest)
         {
-            // Find the piece to move
-            var piece = _currentGame.Board.Pieces.FirstOrDefault(p => p.Id == moveRequest.PieceId);
+            var piece = _currentGame.Board.GetPieceAtPosition(moveRequest.CurrentPosition);
             if (piece == null)
             {
                 return JsonSerializer.Serialize(new { message = "Invalid move" });
             }
 
-            // Validate the move (this is a placeholder, implement actual validation logic)
-            var isValidMove = ValidateMove();
-            if (!isValidMove)
+            try
             {
-                return JsonSerializer.Serialize(new { message = "Invalid move" });
+                _currentGame.Board.MovePiece(piece.Position, moveRequest.NewPosition);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return JsonSerializer.Serialize(new { message = ex.Message });
             }
 
-            // Update the piece position
-            piece.Position = moveRequest.NewPosition;
-
-            // Update the board state (this is a placeholder, implement actual update logic)
-            UpdateBoardState(_currentGame.Board);
-
-            // Check for special conditions (e.g., check, checkmate)
-            var gameStateStatus = CheckGameState(_currentGame.Board);
-
             // Update the current game state
-            _currentGame.State = gameStateStatus;
-
-            // Return the new game state
             return JsonSerializer.Serialize(_currentGame, _options);
         }
-
-
+        
         public string GetGameState()
         {
             return JsonSerializer.Serialize(_currentGame, _options);
@@ -153,16 +139,17 @@ namespace FDChess.Services
         {
             return board.Pieces;
         }
-
-        private void UpdateBoardState(Board board)
+        
+        public List<Position> GetPossibleMoves(int pieceId)
         {
-            // Implement board state update logic
-        }
+            var piece = _currentGame.Board.Pieces.FirstOrDefault(p => p.Id == pieceId);
+            if (piece == null)
+            {
+                throw new InvalidOperationException("Piece not found");
+            }
 
-        private string CheckGameState(Board board)
-        {
-            // Implement game state checking logic
-            return "Game in progress";
+            // Assuming each piece has a method to get possible moves
+            return piece.GetPossibleMoves(_currentGame.Board);
         }
         
         public void ResetGame()

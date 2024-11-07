@@ -49,37 +49,70 @@ export class ChessComponent implements OnInit {
     this.selectedPiece = this.gameState.Board.Pieces.find((piece: any) => piece && piece.Position && piece.Position.Row === row && piece.Position.Column === column);
     if (this.selectedPiece) {
       console.log(`Selected piece: ${this.selectedPiece.Name}`);
-      this.possibleMoves = this.getPossibleMoves(this.selectedPiece);
+      this.getPossibleMoves(this.selectedPiece);
     } else {
       console.log('No piece found at the selected position');
     }
   }
 
-  getPossibleMoves(piece: any): { Row: number, Column: number }[] {
-    // Implement logic to get possible moves for the selected piece
-    // This is a placeholder implementation
-    return [
-      { Row: piece.Position.Row + 1, Column: piece.Position.Column },
-      { Row: piece.Position.Row - 1, Column: piece.Position.Column }
-    ];
-  }
-
   movePiece(row: number, column: number): void {
-    if (this.selectedPiece && this.possibleMoves.some(move => move.Row === row && move.Column === column)) {
+    console.log('Attempting to move piece to row:', row, 'column:', column);
+    console.log('Current possible moves:', this.possibleMoves);
+
+    // Log each possible move to verify its properties
+    this.possibleMoves.forEach(move => {
+      console.log('Possible move:', move);
+    });
+
+    const possibleMove = this.possibleMoves.find(move => move.Row === row && move.Column === column);
+    if (this.selectedPiece && possibleMove) {
       const moveRequest = {
-        PieceId: this.selectedPiece.Id,
-        NewPosition: { Row: row, Column: column }
+        CurrentPosition: {
+          Row: this.selectedPiece.Position.Row,
+          Column: this.selectedPiece.Position.Column
+        },
+        NewPosition: {
+          Row: row,
+          Column: column
+        }
       };
+
+      console.log('Move request:', moveRequest); // Log the move request
 
       this.chessService.makeMove(moveRequest).subscribe({
         next: (response) => {
           console.log('Move response:', response);
-          window.location.reload(); // Refresh the page after a successful move
+          this.gameState = response; // Update the game state with the response
+          this.selectedPiece = null; // Deselect the piece after the move
+          this.possibleMoves = []; // Clear possible moves
         },
         error: (error) => {
           console.error('Error making move', error);
         }
       });
+    } else {
+      console.log('Invalid move. Selected piece:', this.selectedPiece, 'Possible move:', possibleMove);
+    }
+  }
+
+  getPossibleMoves(piece: any): void {
+    this.chessService.getPossibleMoves(piece.Id).subscribe({
+      next: (moves: { Row: number, Column: number }[]) => {
+        this.possibleMoves = moves;
+        console.log('Possible moves for piece', piece, ':', this.possibleMoves);
+      },
+      error: (error: any) => {
+        console.error('Error getting possible moves', error);
+      }
+    });
+  }
+
+  handleCellClick(row: number, column: number): void {
+    console.log(`Cell clicked at row: ${row}, column: ${column}`);
+    if (this.selectedPiece) {
+      this.movePiece(row, column);
+    } else {
+      this.selectPiece(row, column);
     }
   }
 
@@ -90,29 +123,9 @@ export class ChessComponent implements OnInit {
 
     const piece = this.gameState.Board.Pieces.find((p: any) => p && p.Position && p.Position.Row === row && p.Position.Column === column);
     if (piece) {
-      console.log(`Piece found at row: ${row}, column: ${column} - ${piece.Name}`);
+     // console.log(`Piece found at row: ${row}, column: ${column} - ${piece.Name}`);
     }
     return piece ? piece.Name : '';
-  }
-
-  resetGame(): void {
-    this.chessService.resetGame().subscribe(
-      response => {
-        this.getGameState(); // Reload game state after resetting
-      },
-      error => {
-        console.error('Error resetting game', error);
-      }
-    );
-  }
-
-  handleCellClick(row: number, column: number): void {
-    console.log(`Cell clicked at row: ${row}, column: ${column}`);
-    if (this.selectedPiece) {
-      this.movePiece(row, column);
-    } else {
-      this.selectPiece(row, column);
-    }
   }
 
   isPossibleMove(row: number, column: number): boolean {
@@ -130,6 +143,17 @@ export class ChessComponent implements OnInit {
 
     const piece = this.gameState.Board.Pieces.find((p: any) => p && p.Position && p.Position.Row === row && p.Position.Column === column);
     return piece ? piece.Color : '';
+  }
+
+  resetGame(): void {
+    this.chessService.resetGame().subscribe({
+      next: () => {
+        this.getGameState(); // Refresh the game state after resetting
+      },
+      error: (error) => {
+        console.error('Error resetting game', error);
+      }
+    });
   }
 
   initializeGameState(): any {
