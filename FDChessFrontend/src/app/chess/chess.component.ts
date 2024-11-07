@@ -14,8 +14,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 export class ChessComponent implements OnInit {
   gameState: any = { Board: { Pieces: [] } }; // Initialize with default value
   selectedPiece: any;
-  targetRow: number = 0;
-  targetColumn: number = 0;
+  possibleMoves: { Row: number, Column: number }[] = [];
 
   constructor(private chessService: ChessService) { }
 
@@ -41,7 +40,47 @@ export class ChessComponent implements OnInit {
   }
 
   selectPiece(row: number, column: number): void {
+    if (!this.gameState || !this.gameState.Board || !this.gameState.Board.Pieces) {
+      console.error('Game state or board is not properly initialized');
+      return;
+    }
+
+    console.log(`Piece selected at row: ${row}, column: ${column}`);
     this.selectedPiece = this.gameState.Board.Pieces.find((piece: any) => piece && piece.Position && piece.Position.Row === row && piece.Position.Column === column);
+    if (this.selectedPiece) {
+      console.log(`Selected piece: ${this.selectedPiece.Name}`);
+      this.possibleMoves = this.getPossibleMoves(this.selectedPiece);
+    } else {
+      console.log('No piece found at the selected position');
+    }
+  }
+
+  getPossibleMoves(piece: any): { Row: number, Column: number }[] {
+    // Implement logic to get possible moves for the selected piece
+    // This is a placeholder implementation
+    return [
+      { Row: piece.Position.Row + 1, Column: piece.Position.Column },
+      { Row: piece.Position.Row - 1, Column: piece.Position.Column }
+    ];
+  }
+
+  movePiece(row: number, column: number): void {
+    if (this.selectedPiece && this.possibleMoves.some(move => move.Row === row && move.Column === column)) {
+      const moveRequest = {
+        PieceId: this.selectedPiece.Id,
+        NewPosition: { Row: row, Column: column }
+      };
+
+      this.chessService.makeMove(moveRequest).subscribe({
+        next: (response) => {
+          console.log('Move response:', response);
+          window.location.reload(); // Refresh the page after a successful move
+        },
+        error: (error) => {
+          console.error('Error making move', error);
+        }
+      });
+    }
   }
 
   getPieceName(row: number, column: number): string {
@@ -50,37 +89,10 @@ export class ChessComponent implements OnInit {
     }
 
     const piece = this.gameState.Board.Pieces.find((p: any) => p && p.Position && p.Position.Row === row && p.Position.Column === column);
-    return piece ? piece.Name : '';
-  }
-
-  onDrop(event: any): void {
-    console.log('Drop event:', event);
-    const previousIndex = event.previousContainer.data.index;
-    const currentIndex = event.container.data.index;
-    const previousRow = Math.floor(previousIndex / 8);
-    const previousCol = previousIndex % 8;
-    const currentRow = Math.floor(currentIndex / 8);
-    const currentCol = currentIndex % 8;
-
-    // Find the piece to move based on the previous position
-    this.selectedPiece = this.gameState.Board.Pieces.find((piece: any) => piece && piece.Position && piece.Position.Row === previousRow && piece.Position.Column === previousCol);
-
-    if (this.selectedPiece) {
-      const moveRequest = {
-        PieceId: this.selectedPiece.Id,
-        NewPosition: { Row: currentRow, Column: currentCol }
-      };
-
-      this.chessService.makeMove(moveRequest).subscribe({
-        next: (response) => {
-          console.log('Move response:', response);
-          this.gameState = response; // Update the game state with the new game state
-        },
-        error: (error) => {
-          console.error('Error making move', error);
-        }
-      });
+    if (piece) {
+      console.log(`Piece found at row: ${row}, column: ${column} - ${piece.Name}`);
     }
+    return piece ? piece.Name : '';
   }
 
   resetGame(): void {
@@ -92,6 +104,32 @@ export class ChessComponent implements OnInit {
         console.error('Error resetting game', error);
       }
     );
+  }
+
+  handleCellClick(row: number, column: number): void {
+    console.log(`Cell clicked at row: ${row}, column: ${column}`);
+    if (this.selectedPiece) {
+      this.movePiece(row, column);
+    } else {
+      this.selectPiece(row, column);
+    }
+  }
+
+  isPossibleMove(row: number, column: number): boolean {
+    const isMove = this.possibleMoves.some(move => move.Row === row && move.Column === column);
+    if (isMove) {
+      console.log(`Possible move to row: ${row}, column: ${column}`);
+    }
+    return isMove;
+  }
+
+  getPieceColor(row: number, column: number): string {
+    if (!this.gameState || !this.gameState.Board || !this.gameState.Board.Pieces) {
+      return '';
+    }
+
+    const piece = this.gameState.Board.Pieces.find((p: any) => p && p.Position && p.Position.Row === row && p.Position.Column === column);
+    return piece ? piece.Color : '';
   }
 
   initializeGameState(): any {

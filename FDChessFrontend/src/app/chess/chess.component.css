@@ -2,7 +2,9 @@
   display: grid;
   grid-template-rows: repeat(8, 1fr);
   grid-template-columns: repeat(8, 1fr);
-  gap: 1px;
+  width: 400px; /* Adjust the width to fit 8 cells of 50px each */
+  height: 400px; /* Adjust the height to fit 8 cells of 50px each */
+  border: 2px solid #000; /* Add a border to the board */
 }
 
 .row {
@@ -15,7 +17,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #000;
+  border: 1px solid #000; /* Keep the border to make rows and columns visible */
+  box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
   cursor: pointer;
   transition: background-color 0.3s;
 }
@@ -26,6 +29,20 @@
 
 .cell:nth-child(odd) {
   background-color: #b58863;
+}
+
+.white-piece {
+  color: white;
+  background-color: #000;
+}
+
+.black-piece {
+  color: black;
+  background-color: #fff;
+}
+
+.possible-move {
+  background-color: yellow;
 }
 
 .cdk-drag-preview {
