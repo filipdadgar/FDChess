@@ -22,7 +22,8 @@ export class ChessService {
     return this.http.post<any>(`${this.baseUrl}/reset`, {});
   }
 
-  getPossibleMoves(pieceId: number): Observable<{ Row: number, Column: number }[]> {
-    return this.http.get<{ Row: number, Column: number }[]>(`${this.baseUrl}/moves/${pieceId}`);
+  // chess.service.ts
+  getPossibleMoves(pieceId: number): Observable<{ row: number, column: number }[]> {
+    return this.http.get<{ row: number, column: number }[]>(`${this.baseUrl}/moves/${pieceId}`);
   }
 }

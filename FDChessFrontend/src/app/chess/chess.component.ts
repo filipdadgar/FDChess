@@ -55,6 +55,19 @@ export class ChessComponent implements OnInit {
     }
   }
 
+  getPossibleMoves(piece: any): void {
+    this.chessService.getPossibleMoves(piece.Id).subscribe({
+      next: (moves: { row: number, column: number }[]) => {
+        // Map the API response to the expected format
+        this.possibleMoves = moves.map(move => ({ Row: move.row, Column: move.column }));
+        console.log('Possible moves for piece', piece, ':', this.possibleMoves);
+      },
+      error: (error: any) => {
+        console.error('Error getting possible moves', error);
+      }
+    });
+  }
+
   movePiece(row: number, column: number): void {
     console.log('Attempting to move piece to row:', row, 'column:', column);
     console.log('Current possible moves:', this.possibleMoves);
@@ -93,18 +106,6 @@ export class ChessComponent implements OnInit {
     } else {
       console.log('Invalid move. Selected piece:', this.selectedPiece, 'Possible move:', possibleMove);
     }
-  }
-
-  getPossibleMoves(piece: any): void {
-    this.chessService.getPossibleMoves(piece.Id).subscribe({
-      next: (moves: { Row: number, Column: number }[]) => {
-        this.possibleMoves = moves;
-        console.log('Possible moves for piece', piece, ':', this.possibleMoves);
-      },
-      error: (error: any) => {
-        console.error('Error getting possible moves', error);
-      }
-    });
   }
 
   handleCellClick(row: number, column: number): void {
