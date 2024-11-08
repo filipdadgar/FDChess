@@ -439,9 +439,15 @@ namespace FDChess.Model
                 return false;
             }
 
-            foreach (var piece in board.Pieces)
+            // Check if the king can move to any adjacent square
+            foreach (var move in GetPossibleMoves(board))
             {
-                if (piece.Color == Color && piece.GetPossibleMoves(board).Count > 0)
+                var originalPosition = Position;
+                Position = move;
+                bool isStillInCheck = IsInCheck(board);
+                Position = originalPosition;
+
+                if (!isStillInCheck)
                 {
                     return false;
                 }

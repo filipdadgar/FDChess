@@ -84,7 +84,9 @@ namespace FDChess.Model
             {
                 throw new InvalidOperationException("King not found on the board.");
             }
-            return king.IsInCheckmate(this);
+            bool isInCheckmate = king.IsInCheckmate(this);
+            Console.WriteLine($"IsKingInCheckmate for {color}: {isInCheckmate}");
+            return isInCheckmate;
         }
         
         public bool IsKingInStalemate(string color)
@@ -96,6 +98,5 @@ namespace FDChess.Model
             }
             return king.IsInStalemate(this);
         }
-        
     }
 }
