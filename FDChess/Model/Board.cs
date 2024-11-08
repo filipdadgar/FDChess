@@ -45,15 +45,7 @@ namespace FDChess.Model
             var piece = GetPieceAtPosition(position);
             return piece != null && piece.Color != color;
         }
-
-        public void AddPiece(Piece piece)
-        {
-            if (piece == null) throw new ArgumentNullException(nameof(piece));
-            if (IsPositionOccupied(piece.Position))
-                throw new InvalidOperationException("Position is already occupied by another piece.");
-            Pieces.Add(piece);
-        }
-
+        
         public void RemovePiece(Position position)
         {
             var piece = GetPieceAtPosition(position);
@@ -74,5 +66,36 @@ namespace FDChess.Model
             }
             piece.Position = to;
         }
+        
+        public bool IsKingInCheck(string color)
+        {
+            var king = Pieces.OfType<King>().FirstOrDefault(k => k.Color == color);
+            if (king == null)
+            {
+                throw new InvalidOperationException("King not found on the board.");
+            }
+            return king.IsInCheck(this);
+        }
+        
+        public bool IsKingInCheckmate(string color)
+        {
+            var king = Pieces.OfType<King>().FirstOrDefault(k => k.Color == color);
+            if (king == null)
+            {
+                throw new InvalidOperationException("King not found on the board.");
+            }
+            return king.IsInCheckmate(this);
+        }
+        
+        public bool IsKingInStalemate(string color)
+        {
+            var king = Pieces.OfType<King>().FirstOrDefault(k => k.Color == color);
+            if (king == null)
+            {
+                throw new InvalidOperationException("King not found on the board.");
+            }
+            return king.IsInStalemate(this);
+        }
+        
     }
 }

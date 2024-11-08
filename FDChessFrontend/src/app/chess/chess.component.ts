@@ -98,6 +98,16 @@ export class ChessComponent implements OnInit {
           this.gameState = response; // Update the game state with the response
           this.selectedPiece = null; // Deselect the piece after the move
           this.possibleMoves = []; // Clear possible moves
+
+          // Check for special conditions
+          if (response.message === 'Check') {
+            alert('Check!');
+          } else if (response.message === 'Checkmate') {
+            alert('Checkmate! Game over.');
+          } else if (response.message === 'Stalemate') {
+            alert('Stalemate! Game over.');
+          }
+
           // Update the game state after making the move
           this.getGameState();
         },

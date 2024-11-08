@@ -86,6 +86,19 @@ namespace FDChess.Services
             try
             {
                 _currentGame.Board.MovePiece(piece.Position, moveRequest.NewPosition);
+                var opponentColor = piece.Color == "white" ? "black" : "white";
+                if (_currentGame.Board.IsKingInCheck(opponentColor))
+                {
+                    return JsonSerializer.Serialize(new { message = "Check", gameState = _currentGame });
+                }
+                if (_currentGame.Board.IsKingInCheckmate(opponentColor))
+                {
+                    return JsonSerializer.Serialize(new { message = "Checkmate", gameState = _currentGame });
+                }
+                if (_currentGame.Board.IsKingInStalemate(opponentColor))
+                {
+                    return JsonSerializer.Serialize(new { message = "Stalemate", gameState = _currentGame });
+                }
             }
             catch (InvalidOperationException ex)
             {
@@ -93,7 +106,7 @@ namespace FDChess.Services
             }
 
             // Update the current game state
-            return JsonSerializer.Serialize(_currentGame, _options);
+            return JsonSerializer.Serialize(new { message = "Move successful", gameState = _currentGame });
         }
         
         public string GetGameState()

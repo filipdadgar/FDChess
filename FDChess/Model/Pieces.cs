@@ -419,5 +419,53 @@ namespace FDChess.Model
 
             return possibleMoves;
         }
+        
+        public bool IsInCheck(Board board)
+        {
+            foreach (var piece in board.Pieces)
+            {
+                if (piece.Color != this.Color && piece.IsMoveValid(this.Position, board))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        public bool IsInCheckmate(Board board)
+        {
+            if (!IsInCheck(board))
+            {
+                return false;
+            }
+
+            foreach (var piece in board.Pieces)
+            {
+                if (piece.Color == Color && piece.GetPossibleMoves(board).Count > 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        
+        public bool IsInStalemate(Board board)
+        {
+            if (IsInCheck(board))
+            {
+                return false;
+            }
+
+            foreach (var piece in board.Pieces)
+            {
+                if (piece.Color == Color && piece.GetPossibleMoves(board).Count > 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

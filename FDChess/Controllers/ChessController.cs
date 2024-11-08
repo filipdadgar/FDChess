@@ -19,22 +19,30 @@ namespace FDChess.Controllers
             _chessService = chessService;
         }
         
-        // ChessController.cs
         [HttpPost("move")]
         public IActionResult MakeMove([FromBody] MoveRequest moveRequest)
         {
             try
             {
-                var gameState = _chessService.GetGameState();
-                var options = new JsonSerializerOptions { Converters = { new PieceConverter() } };
-                var game = JsonSerializer.Deserialize<Game>(gameState, options);
-                var board = game.Board;
+                var result = _chessService.MakeMove(moveRequest);
+                var response = JsonSerializer.Deserialize<Dictionary<string, object>>(result);
 
-                board.MovePiece(moveRequest.CurrentPosition, moveRequest.NewPosition);
+                if (response != null && response.ContainsKey("message"))
+                {
+                    var message = response["message"].ToString();
+                    var gameState = response.ContainsKey("gameState") ? response["gameState"] : null;
 
-                // Save updated game state
-                _chessService.SetGameState(JsonSerializer.Serialize(game, options));
-                return Ok(game); // Return the updated game state
+                    if (message == "Check" || message == "Checkmate" || message == "Stalemate")
+                    {
+                        return Ok(new { message, gameState });
+                    }
+                    else if (message == "Invalid move")
+                    {
+                        return BadRequest(new { message });
+                    }
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -90,7 +98,6 @@ namespace FDChess.Controllers
             }
         }
         
-        // ChessController.cs
         [HttpGet("moves/{pieceId}")]
         public IActionResult GetPossibleMoves(int pieceId)
         {
