@@ -91,9 +91,33 @@ namespace FDChess.Model
 
         public override bool IsMoveValid(Position newPosition, Board board)
         {
-            if (newPosition.Row == Position.Row || newPosition.Column == Position.Column)
+            int rowDiff = Math.Abs(newPosition.Row - Position.Row);
+            int colDiff = Math.Abs(newPosition.Column - Position.Column);
+
+            if (newPosition.Row == Position.Row || newPosition.Column == Position.Column || rowDiff == colDiff)
             {
-                return board.IsPathClear(Position, newPosition);
+                // Check for blocking pieces
+                int rowDirection = newPosition.Row > Position.Row ? 1 : (newPosition.Row < Position.Row ? -1 : 0);
+                int colDirection = newPosition.Column > Position.Column ? 1 : (newPosition.Column < Position.Column ? -1 : 0);
+
+                int currentRow = Position.Row + rowDirection;
+                int currentColumn = Position.Column + colDirection;
+
+                while (currentRow != newPosition.Row || currentColumn != newPosition.Column)
+                {
+                    if (board.IsPositionOccupied(new Position(currentRow, currentColumn)))
+                    {
+                        return false;
+                    }
+                    currentRow += rowDirection;
+                    currentColumn += colDirection;
+                }
+
+                var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
+                if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
+                {
+                    return true;
+                }
             }
             return false;
         }
@@ -140,7 +164,15 @@ namespace FDChess.Model
             int rowDiff = Math.Abs(newPosition.Row - Position.Row);
             int colDiff = Math.Abs(newPosition.Column - Position.Column);
 
-            return (rowDiff == 2 && colDiff == 1) || (rowDiff == 1 && colDiff == 2);
+            if ((rowDiff == 2 && colDiff == 1) || (rowDiff == 1 && colDiff == 2))
+            {
+                var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
+                if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public override List<Position> GetPossibleMoves(Board board)
@@ -178,7 +210,32 @@ namespace FDChess.Model
             int rowDiff = Math.Abs(newPosition.Row - Position.Row);
             int colDiff = Math.Abs(newPosition.Column - Position.Column);
 
-            return rowDiff == colDiff && board.IsPathClear(Position, newPosition);
+            if (newPosition.Row == Position.Row || newPosition.Column == Position.Column || rowDiff == colDiff)
+            {
+                // Check for blocking pieces
+                int rowDirection = newPosition.Row > Position.Row ? 1 : (newPosition.Row < Position.Row ? -1 : 0);
+                int colDirection = newPosition.Column > Position.Column ? 1 : (newPosition.Column < Position.Column ? -1 : 0);
+
+                int currentRow = Position.Row + rowDirection;
+                int currentColumn = Position.Column + colDirection;
+
+                while (currentRow != newPosition.Row || currentColumn != newPosition.Column)
+                {
+                    if (board.IsPositionOccupied(new Position(currentRow, currentColumn)))
+                    {
+                        return false;
+                    }
+                    currentRow += rowDirection;
+                    currentColumn += colDirection;
+                }
+
+                var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
+                if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public override List<Position> GetPossibleMoves(Board board)
@@ -218,77 +275,105 @@ namespace FDChess.Model
     }
 
     public class Queen : Piece
+{
+    public Queen() : base() { }
+
+    [JsonConstructor]
+    public Queen(int id, Position position, string color)
+        : base(id, "Queen", position, color) { }
+
+    public override bool IsMoveValid(Position newPosition, Board board)
     {
-        public Queen() : base() { }
+        int rowDiff = Math.Abs(newPosition.Row - Position.Row);
+        int colDiff = Math.Abs(newPosition.Column - Position.Column);
 
-        [JsonConstructor]
-        public Queen(int id, Position position, string color)
-            : base(id, "Queen", position, color) { }
-
-        public override bool IsMoveValid(Position newPosition, Board board)
+        if (newPosition.Row == Position.Row || newPosition.Column == Position.Column || rowDiff == colDiff)
         {
-            int rowDiff = Math.Abs(newPosition.Row - Position.Row);
-            int colDiff = Math.Abs(newPosition.Column - Position.Column);
+            // Check for blocking pieces
+            int rowDirection = newPosition.Row > Position.Row ? 1 : (newPosition.Row < Position.Row ? -1 : 0);
+            int colDirection = newPosition.Column > Position.Column ? 1 : (newPosition.Column < Position.Column ? -1 : 0);
 
-            if (newPosition.Row == Position.Row || newPosition.Column == Position.Column)
+            int currentRow = Position.Row + rowDirection;
+            int currentColumn = Position.Column + colDirection;
+
+            while (currentRow != newPosition.Row || currentColumn != newPosition.Column)
             {
-                return board.IsPathClear(Position, newPosition);
-            }
-            return rowDiff == colDiff && board.IsPathClear(Position, newPosition);
-        }
-
-        public override List<Position> GetPossibleMoves(Board board)
-        {
-            var possibleMoves = new List<Position>();
-
-            // Horizontal, vertical, and diagonal moves
-            for (int i = 0; i < 8; i++)
-            {
-                if (i != Position.Row)
+                if (board.IsPositionOccupied(new Position(currentRow, currentColumn)))
                 {
-                    var newPosition = new Position(i, Position.Column);
-                    if (IsMoveValid(newPosition, board))
-                    {
-                        possibleMoves.Add(newPosition);
-                    }
+                    return false;
                 }
-                if (i != Position.Column)
-                {
-                    var newPosition = new Position(Position.Row, i);
-                    if (IsMoveValid(newPosition, board))
-                    {
-                        possibleMoves.Add(newPosition);
-                    }
-                }
-
-                var diagonalPosition1 = new Position(Position.Row + i, Position.Column + i);
-                if (IsMoveValid(diagonalPosition1, board))
-                {
-                    possibleMoves.Add(diagonalPosition1);
-                }
-
-                var diagonalPosition2 = new Position(Position.Row + i, Position.Column - i);
-                if (IsMoveValid(diagonalPosition2, board))
-                {
-                    possibleMoves.Add(diagonalPosition2);
-                }
-
-                var diagonalPosition3 = new Position(Position.Row - i, Position.Column + i);
-                if (IsMoveValid(diagonalPosition3, board))
-                {
-                    possibleMoves.Add(diagonalPosition3);
-                }
-
-                var diagonalPosition4 = new Position(Position.Row - i, Position.Column - i);
-                if (IsMoveValid(diagonalPosition4, board))
-                {
-                    possibleMoves.Add(diagonalPosition4);
-                }
+                currentRow += rowDirection;
+                currentColumn += colDirection;
             }
 
-            return possibleMoves;
+            var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
+            if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
+            {
+                return true;
+            }
         }
+        return false;
     }
+
+    public override List<Position> GetPossibleMoves(Board board)
+    {
+        var possibleMoves = new List<Position>();
+
+        // Horizontal, vertical, and diagonal moves
+        for (int i = 1; i < 8; i++)
+        {
+            var newPosition = new Position(Position.Row + i, Position.Column);
+            if (IsMoveValid(newPosition, board))
+            {
+                possibleMoves.Add(newPosition);
+            }
+
+            newPosition = new Position(Position.Row - i, Position.Column);
+            if (IsMoveValid(newPosition, board))
+            {
+                possibleMoves.Add(newPosition);
+            }
+
+            newPosition = new Position(Position.Row, Position.Column + i);
+            if (IsMoveValid(newPosition, board))
+            {
+                possibleMoves.Add(newPosition);
+            }
+
+            newPosition = new Position(Position.Row, Position.Column - i);
+            if (IsMoveValid(newPosition, board))
+            {
+                possibleMoves.Add(newPosition);
+            }
+
+            newPosition = new Position(Position.Row + i, Position.Column + i);
+            if (IsMoveValid(newPosition, board))
+            {
+                possibleMoves.Add(newPosition);
+            }
+
+            newPosition = new Position(Position.Row + i, Position.Column - i);
+            if (IsMoveValid(newPosition, board))
+            {
+                possibleMoves.Add(newPosition);
+            }
+
+            newPosition = new Position(Position.Row - i, Position.Column + i);
+            if (IsMoveValid(newPosition, board))
+            {
+                possibleMoves.Add(newPosition);
+            }
+
+            newPosition = new Position(Position.Row - i, Position.Column - i);
+            if (IsMoveValid(newPosition, board))
+            {
+                possibleMoves.Add(newPosition);
+            }
+        }
+
+        return possibleMoves;
+    }
+}
 
     public class King : Piece
     {
@@ -303,7 +388,15 @@ namespace FDChess.Model
             int rowDiff = Math.Abs(newPosition.Row - Position.Row);
             int colDiff = Math.Abs(newPosition.Column - Position.Column);
 
-            return rowDiff <= 1 && colDiff <= 1;
+            if (rowDiff <= 1 && colDiff <= 1)
+            {
+                var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
+                if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public override List<Position> GetPossibleMoves(Board board)

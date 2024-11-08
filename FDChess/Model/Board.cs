@@ -46,30 +46,6 @@ namespace FDChess.Model
             return piece != null && piece.Color != color;
         }
 
-        public bool IsPathClear(Position start, Position end)
-        {
-            var startRow = start.Row;
-            var startCol = start.Column;
-            var endRow = end.Row;
-            var endCol = end.Column;
-
-            var rowDirection = Math.Sign(endRow - startRow);
-            var colDirection = Math.Sign(endCol - startCol);
-
-            var currentRow = startRow + rowDirection;
-            var currentCol = startCol + colDirection;
-
-            while (currentRow != endRow || currentCol != endCol)
-            {
-                var position = new Position(currentRow, currentCol);
-                if (IsPositionOccupied(position)) return false;
-
-                currentRow += rowDirection;
-                currentCol += colDirection;
-            }
-            return true;
-        }
-
         public void AddPiece(Piece piece)
         {
             if (piece == null) throw new ArgumentNullException(nameof(piece));

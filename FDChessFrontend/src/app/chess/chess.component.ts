@@ -98,6 +98,8 @@ export class ChessComponent implements OnInit {
           this.gameState = response; // Update the game state with the response
           this.selectedPiece = null; // Deselect the piece after the move
           this.possibleMoves = []; // Clear possible moves
+          // Update the game state after making the move
+          this.getGameState();
         },
         error: (error) => {
           console.error('Error making move', error);
