@@ -130,11 +130,7 @@ export class ChessComponent implements OnInit {
   }
 
   isPossibleMove(row: number, column: number): boolean {
-    const isMove = this.possibleMoves.some(move => move.Row === row && move.Column === column);
-    if (isMove) {
-      console.log(`Possible move to row: ${row}, column: ${column}`);
-    }
-    return isMove;
+    return this.possibleMoves.some(move => move.Row === row && move.Column === column);
   }
 
   getPieceColor(row: number, column: number): string {
