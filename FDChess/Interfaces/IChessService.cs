@@ -10,7 +10,6 @@ namespace FDChess.Interfaces
         void SetGameState(string gameState);
         Game CreateGame(string name, string state, Board board);
         Piece? AddPieceToBoard(Board board, string name, Position position, string color);
-        List<Piece?> GetPieces(Board board);
         List<Piece> InitializeDefaultPieces();
         void ResetGame();
         List<Position> GetPossibleMoves(int pieceId);

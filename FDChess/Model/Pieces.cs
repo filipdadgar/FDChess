@@ -437,7 +437,7 @@ namespace FDChess.Model
         {
             if (piece.Color != this.Color && piece.IsMoveValid(this.Position, board))
             {
-                Console.WriteLine($"King is in check by {piece.Name} at {piece.Position}");
+                Console.WriteLine($"{this.Color} King is in check by {piece.Name} at {piece.Position}");
                 return true;
             }
         }
@@ -456,33 +456,29 @@ namespace FDChess.Model
         {
             var originalPosition = Position;
             Position = move;
-            bool isStillInCheck = IsInCheck(board);
-            Position = originalPosition;
-
-            if (!isStillInCheck)
+            if (!IsInCheck(board))
             {
+                Position = originalPosition;
                 return false;
             }
+            Position = originalPosition;
         }
 
         // Check if any other piece can make a valid move to get out of check
-        // Check if any other piece can make a valid move to get out of check
         foreach (var piece in board.Pieces)
         {
-            if (piece.Color == this.Color)
+            if (piece.Color == Color)
             {
-                var possibleMoves = piece.GetPossibleMoves(board);
-                foreach (var move in possibleMoves)
+                foreach (var move in piece.GetPossibleMoves(board))
                 {
                     var originalPosition = piece.Position;
                     piece.Position = move;
-                    bool isKingStillInCheck = IsInCheck(board);
-                    piece.Position = originalPosition;
-
-                    if (!isKingStillInCheck)
+                    if (!IsInCheck(board))
                     {
+                        piece.Position = originalPosition;
                         return false;
                     }
+                    piece.Position = originalPosition;
                 }
             }
         }

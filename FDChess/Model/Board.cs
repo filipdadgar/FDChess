@@ -51,6 +51,10 @@ namespace FDChess.Model
             var piece = GetPieceAtPosition(position);
             if (piece != null)
             {
+                if (piece is King)
+                {
+                    throw new InvalidOperationException("The king cannot be removed from the board.");
+                }
                 Pieces.Remove(piece);
             }
         }

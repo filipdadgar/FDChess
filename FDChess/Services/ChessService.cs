@@ -96,21 +96,24 @@ namespace FDChess.Services
                 // Check for check, checkmate, and stalemate conditions
                 if (_currentGame.Board.IsKingInCheck(opponentColor))
                 {
-                    // Allow the player in check to make a move
+                    if (_currentGame.Board.IsKingInCheckmate(opponentColor))
+                    {
+                        _currentGame.GameStatus = "checkmate";
+                        return JsonSerializer.Serialize(new { message = "Checkmate", gameState = _currentGame });
+                    }
+                    _currentGame.GameStatus = "check";
                     _currentGame.CurrentTurn = opponentColor;
                     return JsonSerializer.Serialize(new { message = "Check", gameState = _currentGame });
                 }
-                if (_currentGame.Board.IsKingInCheckmate(opponentColor))
-                {
-                    return JsonSerializer.Serialize(new { message = "Checkmate", gameState = _currentGame });
-                }
                 if (_currentGame.Board.IsKingInStalemate(opponentColor))
                 {
+                    _currentGame.GameStatus = "stalemate";
                     return JsonSerializer.Serialize(new { message = "Stalemate", gameState = _currentGame });
                 }
 
                 // Switch turns
                 _currentGame.CurrentTurn = opponentColor;
+                _currentGame.GameStatus = "active";
             }
             catch (InvalidOperationException ex)
             {
@@ -159,11 +162,7 @@ namespace FDChess.Services
                     throw new ArgumentException("Invalid piece name");
             }
         }
-
-        public List<Piece?> GetPieces(Board board)
-        {
-            return board.Pieces;
-        }
+        
         
         public List<Position> GetPossibleMoves(int pieceId)
         {

@@ -127,6 +127,44 @@ namespace FDChess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+        
+        // Get list of pieces on the board with color and position
+        [HttpGet("pieces")]
+        public IActionResult GetPieces()
+        {
+            try
+            {
+                var state = _chessService.GetGameState();
+                var game = JsonSerializer.Deserialize<Game>(state);
+                var pieces = game.GetPieces();
+                return Ok(pieces);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+        
+        // Get list of removed pieces
+        [HttpGet("removed")]
+        public IActionResult GetRemovedPieces([FromQuery] List<Position> positions)
+        {
+            try
+            {
+                var state = _chessService.GetGameState();
+                var game = JsonSerializer.Deserialize<Game>(state);
+                if (game != null)
+                {
+                    var removedPieces = game.RemovePieces(positions);
+                    return Ok(removedPieces);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+            return Ok(new List<Piece>());
+        }
     }
 
     public class MoveRequest
