@@ -466,6 +466,7 @@ namespace FDChess.Model
         }
 
         // Check if any other piece can make a valid move to get out of check
+        // Check if any other piece can make a valid move to get out of check
         foreach (var piece in board.Pieces)
         {
             if (piece.Color == this.Color)

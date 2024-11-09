@@ -111,6 +111,22 @@ namespace FDChess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+        
+        [HttpPost("simulate")]
+        public IActionResult SimulateGame()
+        {
+            try
+            {
+                var simulation = new QuickGameSimulation();
+                simulation.Run();
+                var state = _chessService.GetGameState();
+                return Ok(state);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
     }
 
     public class MoveRequest
