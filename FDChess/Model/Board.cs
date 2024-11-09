@@ -74,6 +74,7 @@ namespace FDChess.Model
             {
                 throw new InvalidOperationException("King not found on the board.");
             }
+            Console.WriteLine($"IsKingInCheck for {color}: {king.IsInCheck(this)}");
             return king.IsInCheck(this);
         }
         

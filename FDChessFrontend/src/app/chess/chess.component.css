@@ -31,6 +31,16 @@
   background-color: #b58863;
 }
 
+.row:nth-child(even) .cell:nth-child(even),
+.row:nth-child(odd) .cell:nth-child(odd) {
+  background-color: #b58863;
+}
+
+.row:nth-child(even) .cell:nth-child(odd),
+.row:nth-child(odd) .cell:nth-child(even) {
+  background-color: #f0d9b5;
+}
+
 .white-piece {
   color: white;
   background-color: #000;

@@ -11,6 +11,7 @@ namespace FDChess.Model
         public string Name { get; set; }
         public string State { get; set; }
         public Board Board { get; set; }
+        public string CurrentTurn { get; set; } = "white"; // Initialize with white's turn
 
         [JsonConstructor]
         public Game()

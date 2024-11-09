@@ -83,12 +83,21 @@ namespace FDChess.Services
                 return JsonSerializer.Serialize(new { message = "Invalid move" });
             }
 
+            if (piece.Color != _currentGame.CurrentTurn)
+            {
+                return JsonSerializer.Serialize(new { message = "Not your turn" });
+            }
+
             try
             {
                 _currentGame.Board.MovePiece(piece.Position, moveRequest.NewPosition);
                 var opponentColor = piece.Color == "white" ? "black" : "white";
+
+                // Check for check, checkmate, and stalemate conditions
                 if (_currentGame.Board.IsKingInCheck(opponentColor))
                 {
+                    // Allow the player in check to make a move
+                    _currentGame.CurrentTurn = opponentColor;
                     return JsonSerializer.Serialize(new { message = "Check", gameState = _currentGame });
                 }
                 if (_currentGame.Board.IsKingInCheckmate(opponentColor))
@@ -99,6 +108,9 @@ namespace FDChess.Services
                 {
                     return JsonSerializer.Serialize(new { message = "Stalemate", gameState = _currentGame });
                 }
+
+                // Switch turns
+                _currentGame.CurrentTurn = opponentColor;
             }
             catch (InvalidOperationException ex)
             {
