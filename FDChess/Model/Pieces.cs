@@ -376,7 +376,7 @@ namespace FDChess.Model
             return possibleMoves;
         }
     }
-
+    
     public class King : Piece
     {
         public King() : base() { }
@@ -387,68 +387,38 @@ namespace FDChess.Model
 
         public override bool IsMoveValid(Position newPosition, Board board)
         {
-            int rowDiff = Math.Abs(newPosition.Row - Position.Row);
-            int colDiff = Math.Abs(newPosition.Column - Position.Column);
+            int rowDifference = Math.Abs(newPosition.Row - Position.Row);
+            int columnDifference = Math.Abs(newPosition.Column - Position.Column);
 
-            // Check if the move is within bounds
-            if (rowDiff <= 1 && colDiff <= 1 &&
+            if (rowDifference <= 1 && columnDifference <= 1 &&
                 newPosition.Row >= 0 && newPosition.Row < 8 &&
                 newPosition.Column >= 0 && newPosition.Column < 8)
             {
                 var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
                 if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
                 {
-                    // Temporarily move the King to the new position
-                    var originalPosition = Position;
-                    var capturedPiece = pieceAtNewPosition;
-                    if (capturedPiece != null) capturedPiece.IsRemoved = true;
-                    Position = newPosition;
-                    bool isInCheck = board.IsPositionUnderAttack(newPosition, this.Color);
-                    Position = originalPosition;
-                    if (capturedPiece != null) capturedPiece.IsRemoved = false;
-
-                    // If the King is not in check in the new position, the move is valid
-                    if (!isInCheck)
-                    {
-                        return true;
-                    }
+                    return !IsPositionUnderAttack(newPosition, board);
                 }
             }
             return false;
         }
 
-        public override List<Position> GetPossibleMoves(Board board)
+        private bool IsPositionUnderAttack(Position position, Board board)
         {
-            var possibleMoves = new List<Position>();
-            var moveOffsets = new (int, int)[]
+            foreach (var piece in board.Pieces.Where(p => p.Color != this.Color && !p.IsRemoved))
             {
-                (1, 0), (-1, 0), (0, 1), (0, -1),
-                (1, 1), (1, -1), (-1, 1), (-1, -1)
-            };
-
-            foreach (var (rowOffset, colOffset) in moveOffsets)
-            {
-                var newPosition = new Position(Position.Row + rowOffset, Position.Column + colOffset);
-                if (IsMoveValid(newPosition, board))
+                if (piece.IsMoveValid(position, board))
                 {
-                    possibleMoves.Add(newPosition);
-                }
-            }
-
-            return possibleMoves;
-        }
-
-        public bool IsInCheck(Board board)
-        {
-            foreach (var piece in board.Pieces)
-            {
-                if (piece.Color != this.Color && piece.IsMoveValid(this.Position, board))
-                {
-                    Console.WriteLine($"{this.Color} King is in check by {piece.Name} at {piece.Position}");
+                    Console.WriteLine($"Position {position} is under attack by {piece.Color} {piece.Name} at {piece.Position}");
                     return true;
                 }
             }
             return false;
+        }
+
+        public bool IsInCheck(Board board)
+        {
+            return IsPositionUnderAttack(Position, board);
         }
 
         public bool IsInCheckmate(Board board)
@@ -458,58 +428,66 @@ namespace FDChess.Model
 
             Console.WriteLine($"Checking checkmate for {Color} king at {Position}");
             
-            // Check all possible escape squares for the king
-            for (int row = -1; row <= 1; row++)
+            // Get all attacking pieces
+            var attackingPieces = board.Pieces
+                .Where(p => p.Color != Color && !p.IsRemoved && p.IsMoveValid(Position, board))
+                .ToList();
+            
+            Console.WriteLine($"Found {attackingPieces.Count} attacking pieces");
+
+            // Check all possible escape squares
+            var escapeSquares = GetPossibleMoves(board);
+            foreach (var escapeSquare in escapeSquares)
             {
-                for (int col = -1; col <= 1; col++)
+                Console.WriteLine($"Checking escape square: {escapeSquare}");
+                bool canEscape = true;
+                foreach (var attacker in attackingPieces)
                 {
-                    if (row == 0 && col == 0) continue;
-                    
-                    var newPos = new Position(Position.Row + row, Position.Column + col);
-                    if (newPos.Row >= 0 && newPos.Row < 8 && 
-                        newPos.Column >= 0 && newPos.Column < 8)
+                    if (attacker.IsMoveValid(escapeSquare, board))
                     {
-                        // Try moving the king to this position
-                        var originalPosition = Position;
-                        Position = newPos;
-                        bool stillInCheck = IsInCheck(board);
-                        Position = originalPosition;
-                        
-                        if (!stillInCheck)
-                        {
-                            Console.WriteLine($"King can escape to {newPos}");
-                            return false;
-                        }
+                        Console.WriteLine($"Escape square {escapeSquare} is controlled by {attacker.Name} at {attacker.Position}");
+                        canEscape = false;
+                        break;
                     }
+                }
+                if (canEscape)
+                {
+                    Console.WriteLine($"King can escape to {escapeSquare}");
+                    return false;
                 }
             }
 
-            // Check if any friendly piece can block the check or capture the attacking piece
-            foreach (var piece in board.Pieces.Where(p => p.Color == Color && !p.IsRemoved))
+            // Check if any friendly piece can block or capture
+            foreach (var defender in board.Pieces.Where(p => p.Color == Color && !p.IsRemoved))
             {
-                Console.WriteLine($"Checking if {piece.Name} at {piece.Position} can help");
-                foreach (var move in piece.GetPossibleMoves(board))
+                foreach (var move in defender.GetPossibleMoves(board))
                 {
-                    var originalPosition = piece.Position;
-                    var pieceAtNewPosition = board.GetPieceAtPosition(move);
+                    var originalPosition = defender.Position;
+                    var capturedPiece = board.GetPieceAtPosition(move);
                     bool wasRemoved = false;
-                    if (pieceAtNewPosition != null)
+                    
+                    // Simulate the move
+                    if (capturedPiece != null)
                     {
-                        wasRemoved = pieceAtNewPosition.IsRemoved;
-                        pieceAtNewPosition.IsRemoved = true;
+                        wasRemoved = capturedPiece.IsRemoved;
+                        capturedPiece.IsRemoved = true;
                     }
-                    piece.Position = move;
-                    if (!IsInCheck(board))
+                    defender.Position = move;
+                    
+                    bool stillInCheck = IsInCheck(board);
+                    
+                    // Restore the position
+                    defender.Position = originalPosition;
+                    if (capturedPiece != null)
                     {
-                        Console.WriteLine($"Found defensive move: {piece.Name} to {move}");
-                        piece.Position = originalPosition;
-                        if (pieceAtNewPosition != null)
-                            pieceAtNewPosition.IsRemoved = wasRemoved;
+                        capturedPiece.IsRemoved = wasRemoved;
+                    }
+                    
+                    if (!stillInCheck)
+                    {
+                        Console.WriteLine($"Checkmate can be prevented by {defender.Name} moving to {move}");
                         return false;
                     }
-                    piece.Position = originalPosition;
-                    if (pieceAtNewPosition != null)
-                        pieceAtNewPosition.IsRemoved = wasRemoved;
                 }
             }
 
@@ -517,21 +495,80 @@ namespace FDChess.Model
             return true;
         }
 
-        public bool IsInStalemate(Board board)
+        public override List<Position> GetPossibleMoves(Board board)
         {
-            if (IsInCheck(board))
+            var possibleMoves = new List<Position>();
+            var moveOffsets = new[]
             {
-                return false;
-            }
+                (1, 0), (-1, 0), (0, 1), (0, -1),
+                (1, 1), (1, -1), (-1, 1), (-1, -1)
+            };
 
-            foreach (var piece in board.Pieces)
+            foreach (var (rowOffset, columnOffset) in moveOffsets)
             {
-                if (piece.Color == Color && piece.GetPossibleMoves(board).Count > 0)
+                var newPosition = new Position(Position.Row + rowOffset, Position.Column + columnOffset);
+                if (newPosition.Row >= 0 && newPosition.Row < 8 &&
+                    newPosition.Column >= 0 && newPosition.Column < 8)
                 {
-                    return false;
+                    if (IsMoveValid(newPosition, board))
+                    {
+                        possibleMoves.Add(newPosition);
+                    }
                 }
             }
 
+            return possibleMoves;
+        }
+
+        public bool IsInStalemate(Board board)
+        {
+            if (IsInCheck(board))
+                return false;
+
+            Console.WriteLine($"Checking stalemate for {Color} king at {Position}");
+
+            // Get all friendly pieces
+            var friendlyPieces = board.Pieces
+                .Where(p => p.Color == Color && !p.IsRemoved)
+                .ToList();
+
+            Console.WriteLine($"Found {friendlyPieces.Count} friendly pieces");
+
+            // Check all possible moves for each friendly piece
+            foreach (var friendlyPiece in friendlyPieces)
+            {
+                foreach (var move in friendlyPiece.GetPossibleMoves(board))
+                {
+                    var originalPosition = friendlyPiece.Position;
+                    var capturedPiece = board.GetPieceAtPosition(move);
+                    bool wasRemoved = false;
+
+                    // Simulate the move
+                    if (capturedPiece != null)
+                    {
+                        wasRemoved = capturedPiece.IsRemoved;
+                        capturedPiece.IsRemoved = true;
+                    }
+                    friendlyPiece.Position = move;
+
+                    bool stillInCheck = IsInCheck(board);
+
+                    // Restore the position
+                    friendlyPiece.Position = originalPosition;
+                    if (capturedPiece != null)
+                    {
+                        capturedPiece.IsRemoved = wasRemoved;
+                    }
+
+                    if (!stillInCheck)
+                    {
+                        Console.WriteLine($"Stalemate can be prevented by {friendlyPiece.Name} moving to {move}");
+                        return false;
+                    }
+                }
+            }
+
+            Console.WriteLine("Stalemate confirmed - no valid moves found");
             return true;
         }
     }
