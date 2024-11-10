@@ -43,26 +43,5 @@ namespace FDChess.Model
             GameStatus = "ended";
         }
         
-        // Return list of removed pieces
-        public List<Piece> RemovePieces(List<Position> positions)
-        {
-            var removedPieces = new List<Piece>();
-            foreach (var position in positions)
-            {
-                var piece = Board.GetPieceAtPosition(position);
-                if (piece != null)
-                {
-                    removedPieces.Add(piece);
-                    Board.RemovePiece(position);
-                }
-            }
-            return removedPieces;
-        }
-        
-        // return list of pieces currently on the board
-        public List<Piece> GetPieces()
-        {
-            return Board.Pieces;
-        }
     }
 }

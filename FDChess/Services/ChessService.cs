@@ -68,12 +68,6 @@ namespace FDChess.Services
                 new Pawn(32, new Position(6, 7), "black")
             };
         }
-
-        private bool ValidateMove()
-        {
-            // Implement move validation logic
-            return true; // Placeholder return value
-        }
         
         public string MakeMove(MoveRequest moveRequest)
         {
@@ -163,7 +157,6 @@ namespace FDChess.Services
             }
         }
         
-        
         public List<Position> GetPossibleMoves(int pieceId)
         {
             var piece = _currentGame.Board.Pieces.FirstOrDefault(p => p.Id == pieceId);
@@ -186,6 +179,18 @@ namespace FDChess.Services
                 Pieces = InitializeDefaultPieces()
             };
             _currentGame = new Game(1, "Default Game", "active", board);
+        }
+        
+        // Return removed pieces from the board
+        public List<Piece> GetRemovedPieces()
+        {
+            return _currentGame.Board.Pieces.Where(p => p.IsRemoved).ToList();
+        }
+        
+        // Get available pieces on the board
+        public List<Piece> GetAvailablePieces()
+        {
+            return _currentGame.Board.Pieces.Where(p => !p.IsRemoved).ToList();
         }
     }
 }

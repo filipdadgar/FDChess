@@ -11,6 +11,7 @@ namespace FDChess.Model
         public string? Name { get; set; }
         public Position Position { get; set; }
         public string? Color { get; set; }
+        public bool IsRemoved { get; set; } = false;
 
         // Parameterless constructor for deserialization
         protected Piece()
@@ -25,6 +26,7 @@ namespace FDChess.Model
             Name = name;
             Position = position;
             Color = color;
+            IsRemoved = false;
         }
 
         public override string ToString()

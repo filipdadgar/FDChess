@@ -136,7 +136,7 @@ namespace FDChess.Controllers
             {
                 var state = _chessService.GetGameState();
                 var game = JsonSerializer.Deserialize<Game>(state);
-                var pieces = game.GetPieces();
+                var pieces = _chessService.GetAvailablePieces();
                 return Ok(pieces);
             }
             catch (Exception ex)
@@ -147,23 +147,17 @@ namespace FDChess.Controllers
         
         // Get list of removed pieces
         [HttpGet("removed")]
-        public IActionResult GetRemovedPieces([FromQuery] List<Position> positions)
+        public IActionResult GetRemovedPieces()
         {
             try
             {
-                var state = _chessService.GetGameState();
-                var game = JsonSerializer.Deserialize<Game>(state);
-                if (game != null)
-                {
-                    var removedPieces = game.RemovePieces(positions);
-                    return Ok(removedPieces);
-                }
+                var removedPieces = _chessService.GetRemovedPieces();
+                return Ok(removedPieces);
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
-            return Ok(new List<Piece>());
         }
     }
 

@@ -13,5 +13,7 @@ namespace FDChess.Interfaces
         List<Piece> InitializeDefaultPieces();
         void ResetGame();
         List<Position> GetPossibleMoves(int pieceId);
+        public List<Piece> GetRemovedPieces();
+        public List<Piece> GetAvailablePieces();
     }
 }

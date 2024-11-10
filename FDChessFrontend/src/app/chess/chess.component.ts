@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChessService } from '../chess.service';
+import { PositionService } from '../position.service';
 import { FormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
@@ -15,11 +16,13 @@ export class ChessComponent implements OnInit {
   gameState: any = { Board: { Pieces: [] } }; // Initialize with default value
   selectedPiece: any;
   possibleMoves: { Row: number, Column: number }[] = [];
+  removedPieces: any[] = []; // Declare removedPieces property
 
-  constructor(private chessService: ChessService) { }
+  constructor(private chessService: ChessService, private positionService: PositionService) { }
 
   ngOnInit(): void {
     this.getGameState();
+    this.getRemovedPieces(); // Fetch removed pieces on initialization
   }
 
   getGameState(): void {
@@ -44,7 +47,6 @@ export class ChessComponent implements OnInit {
       console.error('Game state or board is not properly initialized');
       return;
     }
-
     console.log(`Piece selected at row: ${row}, column: ${column}`);
     this.selectedPiece = this.gameState.Board.Pieces.find((piece: any) => piece && piece.Position && piece.Position.Row === row && piece.Position.Column === column);
     if (this.selectedPiece) {
@@ -71,7 +73,6 @@ export class ChessComponent implements OnInit {
   movePiece(row: number, column: number): void {
     console.log('Attempting to move piece to row:', row, 'column:', column);
     console.log('Current possible moves:', this.possibleMoves);
-
     // Log each possible move to verify its properties
     this.possibleMoves.forEach(move => {
       console.log('Possible move:', move);
@@ -110,6 +111,7 @@ export class ChessComponent implements OnInit {
 
           // Update the game state after making the move
           this.getGameState();
+          this.getRemovedPieces(); // Update removed pieces after making the move
         },
         error: (error) => {
           console.error('Error making move', error);
@@ -136,7 +138,7 @@ export class ChessComponent implements OnInit {
 
     const piece = this.gameState.Board.Pieces.find((p: any) => p && p.Position && p.Position.Row === row && p.Position.Column === column);
     if (piece) {
-     // console.log(`Piece found at row: ${row}, column: ${column} - ${piece.Name}`);
+      // console.log(`Piece found at row: ${row}, column: ${column} - ${piece.Name}`);
     }
     return piece ? piece.Name : '';
   }
@@ -158,9 +160,29 @@ export class ChessComponent implements OnInit {
     this.chessService.resetGame().subscribe({
       next: () => {
         this.getGameState(); // Refresh the game state after resetting
+        this.getRemovedPieces(); // Refresh removed pieces after resetting
       },
       error: (error) => {
         console.error('Error resetting game', error);
+      }
+    });
+  }
+
+  simulateGame(): void {
+    this.chessService.simulateGame().subscribe(response => {
+      this.gameState = response.gameState;
+      this.getRemovedPieces(); // Refresh removed pieces after simulating game
+    });
+  }
+
+  getRemovedPieces(): void {
+    this.chessService.getRemovedPieces().subscribe({
+      next: (data) => {
+        console.log('Removed pieces:', data);
+        this.removedPieces = data; // Correctly update the removedPieces property
+      },
+      error: (error) => {
+        console.error('Error getting removed pieces', error);
       }
     });
   }

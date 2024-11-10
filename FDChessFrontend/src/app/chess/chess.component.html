@@ -17,4 +17,13 @@
   </div>
   <button (click)="getGameState()">Get State</button>
   <button (click)="resetGame()">Reset Game</button>
+  <button (click)="simulateGame()">Simulate Game</button>
+  <div>
+    <h2>Removed Pieces</h2>
+    <ul>
+      <li *ngFor="let piece of removedPieces">
+        {{ piece.name }} ({{ piece.color }})
+      </li>
+    </ul>
+  </div>
 </div>

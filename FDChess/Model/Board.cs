@@ -55,7 +55,9 @@ namespace FDChess.Model
                 {
                     throw new InvalidOperationException("The king cannot be removed from the board.");
                 }
-                Pieces.Remove(piece);
+                //Pieces.Remove(piece);
+                piece.IsRemoved = true;
+                piece.Position = new Position(-1, -1); // Set to an invalid position
             }
         }
 
@@ -102,6 +104,16 @@ namespace FDChess.Model
                 throw new InvalidOperationException("King not found on the board.");
             }
             return king.IsInStalemate(this);
+        }
+        
+        public List<Piece> GetRemovedPieces()
+        {
+            return Pieces.Where(p => p.IsRemoved).ToList();
+        }
+
+        public List<Piece> GetAvailablePieces()
+        {
+            return Pieces.Where(p => !p.IsRemoved).ToList();
         }
     }
 }
