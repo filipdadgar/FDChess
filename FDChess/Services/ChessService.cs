@@ -90,12 +90,17 @@ namespace FDChess.Services
                 // Check for check, checkmate, and stalemate conditions
                 if (_currentGame.Board.IsKingInCheck(opponentColor))
                 {
+                    Console.WriteLine($"King in check: {opponentColor}");
+                    // Check for checkmate before switching turns
                     if (_currentGame.Board.IsKingInCheckmate(opponentColor))
                     {
+                        Console.WriteLine($"Checkmate detected for {opponentColor}");
                         _currentGame.GameStatus = "checkmate";
+                        _currentGame.CurrentTurn = "none"; // Game is over
                         return JsonSerializer.Serialize(new { message = "Checkmate", gameState = _currentGame });
                     }
-                    _currentGame.GameStatus = "check";
+                    
+                    Console.WriteLine($"Check detected for {opponentColor}");
                     _currentGame.CurrentTurn = opponentColor;
                     return JsonSerializer.Serialize(new { message = "Check", gameState = _currentGame });
                 }

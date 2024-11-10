@@ -78,11 +78,18 @@ namespace FDChess.Model
         {
             var king = Pieces.OfType<King>().FirstOrDefault(k => k.Color == color);
             if (king == null)
-            {
                 throw new InvalidOperationException("King not found on the board.");
+
+            Console.WriteLine($"Checking if {color} king at {king.Position} is in check");
+            foreach (var piece in Pieces.Where(p => p.Color != color && !p.IsRemoved))
+            {
+                if (piece.IsMoveValid(king.Position, this))
+                {
+                    Console.WriteLine($"King is in check by {piece.Name} at {piece.Position}");
+                    return true;
+                }
             }
-            Console.WriteLine($"IsKingInCheck for {color}: {king.IsInCheck(this)}");
-            return king.IsInCheck(this);
+            return false;
         }
 
         public bool IsKingInCheckmate(string color)
@@ -109,7 +116,16 @@ namespace FDChess.Model
         
         public bool IsPositionUnderAttack(Position position, string color)
         {
-            return Pieces.Any(p => p.Color != color && p.IsMoveValid(position, this));
+            Console.WriteLine($"Checking if position {position} is under attack for {color}");
+            foreach (var piece in Pieces.Where(p => p.Color != color && !p.IsRemoved))
+            {
+                if (piece.IsMoveValid(position, this))
+                {
+                    Console.WriteLine($"Position {position} is under attack by {piece.Color} {piece.Name} at {piece.Position}");
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

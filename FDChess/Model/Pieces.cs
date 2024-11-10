@@ -1,5 +1,6 @@
 ﻿// Pieces.cs
 using System.Text.Json.Serialization;
+using System.Linq;
 
 namespace FDChess.Model
 {
@@ -198,310 +199,340 @@ namespace FDChess.Model
     }
 
     public class Bishop : Piece
-{
-    public Bishop() : base() { }
-
-    [JsonConstructor]
-    public Bishop(int id, Position position, string color)
-        : base(id, "Bishop", position, color) { }
-
-    public override bool IsMoveValid(Position newPosition, Board board)
     {
-        int rowDiff = Math.Abs(newPosition.Row - Position.Row);
-        int colDiff = Math.Abs(newPosition.Column - Position.Column);
+        public Bishop() : base() { }
 
-        // Bishops move diagonally, so rowDiff must equal colDiff
-        if (rowDiff == colDiff)
+        [JsonConstructor]
+        public Bishop(int id, Position position, string color)
+            : base(id, "Bishop", position, color) { }
+
+        public override bool IsMoveValid(Position newPosition, Board board)
         {
-            // Check for blocking pieces
-            int rowDirection = newPosition.Row > Position.Row ? 1 : -1;
-            int colDirection = newPosition.Column > Position.Column ? 1 : -1;
+            int rowDiff = Math.Abs(newPosition.Row - Position.Row);
+            int colDiff = Math.Abs(newPosition.Column - Position.Column);
 
-            int currentRow = Position.Row + rowDirection;
-            int currentColumn = Position.Column + colDirection;
-
-            while (currentRow != newPosition.Row && currentColumn != newPosition.Column)
+            // Bishops move diagonally, so rowDiff must equal colDiff
+            if (rowDiff == colDiff)
             {
-                if (board.IsPositionOccupied(new Position(currentRow, currentColumn)))
+                // Check for blocking pieces
+                int rowDirection = newPosition.Row > Position.Row ? 1 : -1;
+                int colDirection = newPosition.Column > Position.Column ? 1 : -1;
+
+                int currentRow = Position.Row + rowDirection;
+                int currentColumn = Position.Column + colDirection;
+
+                while (currentRow != newPosition.Row && currentColumn != newPosition.Column)
                 {
-                    return false;
+                    if (board.IsPositionOccupied(new Position(currentRow, currentColumn)))
+                    {
+                        return false;
+                    }
+                    currentRow += rowDirection;
+                    currentColumn += colDirection;
                 }
-                currentRow += rowDirection;
-                currentColumn += colDirection;
-            }
 
-            var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
-            if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public override List<Position> GetPossibleMoves(Board board)
-    {
-        var possibleMoves = new List<Position>();
-
-        // Diagonal moves
-        for (int i = 1; i < 8; i++)
-        {
-            var newPosition = new Position(Position.Row + i, Position.Column + i);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-
-            newPosition = new Position(Position.Row + i, Position.Column - i);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-
-            newPosition = new Position(Position.Row - i, Position.Column + i);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-
-            newPosition = new Position(Position.Row - i, Position.Column - i);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-        }
-
-        return possibleMoves;
-    }
-}
-
-    public class Queen : Piece
-{
-    public Queen() : base() { }
-
-    [JsonConstructor]
-    public Queen(int id, Position position, string color)
-        : base(id, "Queen", position, color) { }
-
-    public override bool IsMoveValid(Position newPosition, Board board)
-    {
-        int rowDiff = Math.Abs(newPosition.Row - Position.Row);
-        int colDiff = Math.Abs(newPosition.Column - Position.Column);
-
-        if (newPosition.Row == Position.Row || newPosition.Column == Position.Column || rowDiff == colDiff)
-        {
-            // Check for blocking pieces
-            int rowDirection = newPosition.Row > Position.Row ? 1 : (newPosition.Row < Position.Row ? -1 : 0);
-            int colDirection = newPosition.Column > Position.Column ? 1 : (newPosition.Column < Position.Column ? -1 : 0);
-
-            int currentRow = Position.Row + rowDirection;
-            int currentColumn = Position.Column + colDirection;
-
-            while (currentRow != newPosition.Row || currentColumn != newPosition.Column)
-            {
-                if (board.IsPositionOccupied(new Position(currentRow, currentColumn)))
-                {
-                    return false;
-                }
-                currentRow += rowDirection;
-                currentColumn += colDirection;
-            }
-
-            var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
-            if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public override List<Position> GetPossibleMoves(Board board)
-    {
-        var possibleMoves = new List<Position>();
-
-        // Horizontal, vertical, and diagonal moves
-        for (int i = 1; i < 8; i++)
-        {
-            var newPosition = new Position(Position.Row + i, Position.Column);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-
-            newPosition = new Position(Position.Row - i, Position.Column);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-
-            newPosition = new Position(Position.Row, Position.Column + i);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-
-            newPosition = new Position(Position.Row, Position.Column - i);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-
-            newPosition = new Position(Position.Row + i, Position.Column + i);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-
-            newPosition = new Position(Position.Row + i, Position.Column - i);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-
-            newPosition = new Position(Position.Row - i, Position.Column + i);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-
-            newPosition = new Position(Position.Row - i, Position.Column - i);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-        }
-
-        return possibleMoves;
-    }
-}
-
-    public class King : Piece
-{
-    public King() : base() { }
-
-    [JsonConstructor]
-    public King(int id, Position position, string color)
-        : base(id, "King", position, color) { }
-
-    public override bool IsMoveValid(Position newPosition, Board board)
-    {
-        int rowDiff = Math.Abs(newPosition.Row - Position.Row);
-        int colDiff = Math.Abs(newPosition.Column - Position.Column);
-
-        if (rowDiff <= 1 && colDiff <= 1)
-        {
-            var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
-            if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
-            {
-                // Temporarily move the King to the new position
-                var originalPosition = Position;
-                Position = newPosition;
-                bool isInCheck = board.IsPositionUnderAttack(newPosition, this.Color);
-                Position = originalPosition;
-
-                // If the King is not in check in the new position, the move is valid
-                if (!isInCheck)
+                var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
+                if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
                 {
                     return true;
                 }
             }
-        }
-        return false;
-    }
-
-    public override List<Position> GetPossibleMoves(Board board)
-    {
-        var possibleMoves = new List<Position>();
-        var moveOffsets = new (int, int)[]
-        {
-            (1, 0), (-1, 0), (0, 1), (0, -1),
-            (1, 1), (1, -1), (-1, 1), (-1, -1)
-        };
-
-        foreach (var (rowOffset, colOffset) in moveOffsets)
-        {
-            var newPosition = new Position(Position.Row + rowOffset, Position.Column + colOffset);
-            if (IsMoveValid(newPosition, board))
-            {
-                possibleMoves.Add(newPosition);
-            }
-        }
-
-        return possibleMoves;
-    }
-
-    public bool IsInCheck(Board board)
-    {
-        foreach (var piece in board.Pieces)
-        {
-            if (piece.Color != this.Color && piece.IsMoveValid(this.Position, board))
-            {
-                Console.WriteLine($"{this.Color} King is in check by {piece.Name} at {piece.Position}");
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public bool IsInCheckmate(Board board)
-    {
-        if (!IsInCheck(board))
-        {
             return false;
         }
 
-        // Check if the king can move to any adjacent square
-        foreach (var move in GetPossibleMoves(board))
+        public override List<Position> GetPossibleMoves(Board board)
         {
-            var originalPosition = Position;
-            Position = move;
-            if (!IsInCheck(board))
+            var possibleMoves = new List<Position>();
+
+            // Diagonal moves
+            for (int i = 1; i < 8; i++)
             {
-                Position = originalPosition;
-                return false;
+                var newPosition = new Position(Position.Row + i, Position.Column + i);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
+
+                newPosition = new Position(Position.Row + i, Position.Column - i);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
+
+                newPosition = new Position(Position.Row - i, Position.Column + i);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
+
+                newPosition = new Position(Position.Row - i, Position.Column - i);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
             }
-            Position = originalPosition;
+
+            return possibleMoves;
+        }
+    }
+
+    public class Queen : Piece
+    {
+        public Queen() : base() { }
+
+        [JsonConstructor]
+        public Queen(int id, Position position, string color)
+            : base(id, "Queen", position, color) { }
+
+        public override bool IsMoveValid(Position newPosition, Board board)
+        {
+            int rowDiff = Math.Abs(newPosition.Row - Position.Row);
+            int colDiff = Math.Abs(newPosition.Column - Position.Column);
+
+            if (newPosition.Row == Position.Row || newPosition.Column == Position.Column || rowDiff == colDiff)
+            {
+                // Check for blocking pieces
+                int rowDirection = newPosition.Row > Position.Row ? 1 : (newPosition.Row < Position.Row ? -1 : 0);
+                int colDirection = newPosition.Column > Position.Column ? 1 : (newPosition.Column < Position.Column ? -1 : 0);
+
+                int currentRow = Position.Row + rowDirection;
+                int currentColumn = Position.Column + colDirection;
+
+                while (currentRow != newPosition.Row || currentColumn != newPosition.Column)
+                {
+                    if (board.IsPositionOccupied(new Position(currentRow, currentColumn)))
+                    {
+                        return false;
+                    }
+                    currentRow += rowDirection;
+                    currentColumn += colDirection;
+                }
+
+                var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
+                if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        // Check if any other piece can make a valid move to get out of check
-        foreach (var piece in board.Pieces)
+        public override List<Position> GetPossibleMoves(Board board)
         {
-            if (piece.Color == Color)
+            var possibleMoves = new List<Position>();
+
+            // Horizontal, vertical, and diagonal moves
+            for (int i = 1; i < 8; i++)
             {
+                var newPosition = new Position(Position.Row + i, Position.Column);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
+
+                newPosition = new Position(Position.Row - i, Position.Column);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
+
+                newPosition = new Position(Position.Row, Position.Column + i);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
+
+                newPosition = new Position(Position.Row, Position.Column - i);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
+
+                newPosition = new Position(Position.Row + i, Position.Column + i);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
+
+                newPosition = new Position(Position.Row + i, Position.Column - i);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
+
+                newPosition = new Position(Position.Row - i, Position.Column + i);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
+
+                newPosition = new Position(Position.Row - i, Position.Column - i);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
+            }
+
+            return possibleMoves;
+        }
+    }
+
+    public class King : Piece
+    {
+        public King() : base() { }
+
+        [JsonConstructor]
+        public King(int id, Position position, string color)
+            : base(id, "King", position, color) { }
+
+        public override bool IsMoveValid(Position newPosition, Board board)
+        {
+            int rowDiff = Math.Abs(newPosition.Row - Position.Row);
+            int colDiff = Math.Abs(newPosition.Column - Position.Column);
+
+            // Check if the move is within bounds
+            if (rowDiff <= 1 && colDiff <= 1 &&
+                newPosition.Row >= 0 && newPosition.Row < 8 &&
+                newPosition.Column >= 0 && newPosition.Column < 8)
+            {
+                var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
+                if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
+                {
+                    // Temporarily move the King to the new position
+                    var originalPosition = Position;
+                    var capturedPiece = pieceAtNewPosition;
+                    if (capturedPiece != null) capturedPiece.IsRemoved = true;
+                    Position = newPosition;
+                    bool isInCheck = board.IsPositionUnderAttack(newPosition, this.Color);
+                    Position = originalPosition;
+                    if (capturedPiece != null) capturedPiece.IsRemoved = false;
+
+                    // If the King is not in check in the new position, the move is valid
+                    if (!isInCheck)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public override List<Position> GetPossibleMoves(Board board)
+        {
+            var possibleMoves = new List<Position>();
+            var moveOffsets = new (int, int)[]
+            {
+                (1, 0), (-1, 0), (0, 1), (0, -1),
+                (1, 1), (1, -1), (-1, 1), (-1, -1)
+            };
+
+            foreach (var (rowOffset, colOffset) in moveOffsets)
+            {
+                var newPosition = new Position(Position.Row + rowOffset, Position.Column + colOffset);
+                if (IsMoveValid(newPosition, board))
+                {
+                    possibleMoves.Add(newPosition);
+                }
+            }
+
+            return possibleMoves;
+        }
+
+        public bool IsInCheck(Board board)
+        {
+            foreach (var piece in board.Pieces)
+            {
+                if (piece.Color != this.Color && piece.IsMoveValid(this.Position, board))
+                {
+                    Console.WriteLine($"{this.Color} King is in check by {piece.Name} at {piece.Position}");
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool IsInCheckmate(Board board)
+        {
+            if (!IsInCheck(board))
+                return false;
+
+            Console.WriteLine($"Checking checkmate for {Color} king at {Position}");
+            
+            // Check all possible escape squares for the king
+            for (int row = -1; row <= 1; row++)
+            {
+                for (int col = -1; col <= 1; col++)
+                {
+                    if (row == 0 && col == 0) continue;
+                    
+                    var newPos = new Position(Position.Row + row, Position.Column + col);
+                    if (newPos.Row >= 0 && newPos.Row < 8 && 
+                        newPos.Column >= 0 && newPos.Column < 8)
+                    {
+                        // Try moving the king to this position
+                        var originalPosition = Position;
+                        Position = newPos;
+                        bool stillInCheck = IsInCheck(board);
+                        Position = originalPosition;
+                        
+                        if (!stillInCheck)
+                        {
+                            Console.WriteLine($"King can escape to {newPos}");
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            // Check if any friendly piece can block the check or capture the attacking piece
+            foreach (var piece in board.Pieces.Where(p => p.Color == Color && !p.IsRemoved))
+            {
+                Console.WriteLine($"Checking if {piece.Name} at {piece.Position} can help");
                 foreach (var move in piece.GetPossibleMoves(board))
                 {
                     var originalPosition = piece.Position;
+                    var pieceAtNewPosition = board.GetPieceAtPosition(move);
+                    bool wasRemoved = false;
+                    if (pieceAtNewPosition != null)
+                    {
+                        wasRemoved = pieceAtNewPosition.IsRemoved;
+                        pieceAtNewPosition.IsRemoved = true;
+                    }
                     piece.Position = move;
                     if (!IsInCheck(board))
                     {
+                        Console.WriteLine($"Found defensive move: {piece.Name} to {move}");
                         piece.Position = originalPosition;
+                        if (pieceAtNewPosition != null)
+                            pieceAtNewPosition.IsRemoved = wasRemoved;
                         return false;
                     }
                     piece.Position = originalPosition;
+                    if (pieceAtNewPosition != null)
+                        pieceAtNewPosition.IsRemoved = wasRemoved;
                 }
             }
+
+            Console.WriteLine("Checkmate confirmed - no valid moves found");
+            return true;
         }
 
-        return true;
-    }
-
-    public bool IsInStalemate(Board board)
-    {
-        if (IsInCheck(board))
+        public bool IsInStalemate(Board board)
         {
-            return false;
-        }
-
-        foreach (var piece in board.Pieces)
-        {
-            if (piece.Color == Color && piece.GetPossibleMoves(board).Count > 0)
+            if (IsInCheck(board))
             {
                 return false;
             }
-        }
 
-        return true;
+            foreach (var piece in board.Pieces)
+            {
+                if (piece.Color == Color && piece.GetPossibleMoves(board).Count > 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
-}
 }
