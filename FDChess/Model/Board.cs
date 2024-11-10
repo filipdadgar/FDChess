@@ -45,7 +45,7 @@ namespace FDChess.Model
             var piece = GetPieceAtPosition(position);
             return piece != null && piece.Color != color;
         }
-        
+
         public void RemovePiece(Position position)
         {
             var piece = GetPieceAtPosition(position);
@@ -55,7 +55,6 @@ namespace FDChess.Model
                 {
                     throw new InvalidOperationException("The king cannot be removed from the board.");
                 }
-                //Pieces.Remove(piece);
                 piece.IsRemoved = true;
                 piece.Position = new Position(-1, -1); // Set to an invalid position
             }
@@ -66,13 +65,13 @@ namespace FDChess.Model
             var piece = GetPieceAtPosition(from);
             if (piece == null) throw new InvalidOperationException("No piece at the starting position.");
             if (!piece.IsMoveValid(to, this)) throw new InvalidOperationException("Invalid move for the piece.");
-            if (IsPositionOccupiedByOpponent(to, piece.Color))
+            if (piece.Color != null && IsPositionOccupiedByOpponent(to, piece.Color))
             {
                 RemovePiece(to);
             }
             piece.Position = to;
         }
-        
+
         public bool IsKingInCheck(string color)
         {
             var king = Pieces.OfType<King>().FirstOrDefault(k => k.Color == color);
@@ -83,7 +82,7 @@ namespace FDChess.Model
             Console.WriteLine($"IsKingInCheck for {color}: {king.IsInCheck(this)}");
             return king.IsInCheck(this);
         }
-        
+
         public bool IsKingInCheckmate(string color)
         {
             var king = Pieces.OfType<King>().FirstOrDefault(k => k.Color == color);
@@ -95,7 +94,7 @@ namespace FDChess.Model
             Console.WriteLine($"IsKingInCheckmate for {color}: {isInCheckmate}");
             return isInCheckmate;
         }
-        
+
         public bool IsKingInStalemate(string color)
         {
             var king = Pieces.OfType<King>().FirstOrDefault(k => k.Color == color);
@@ -106,14 +105,9 @@ namespace FDChess.Model
             return king.IsInStalemate(this);
         }
         
-        public List<Piece> GetRemovedPieces()
+        public bool IsPositionUnderAttack(Position position, string color)
         {
-            return Pieces.Where(p => p.IsRemoved).ToList();
-        }
-
-        public List<Piece> GetAvailablePieces()
-        {
-            return Pieces.Where(p => !p.IsRemoved).ToList();
+            return Pieces.Any(p => p.Color != color && p.IsMoveValid(position, this));
         }
     }
 }

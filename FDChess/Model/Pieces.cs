@@ -397,7 +397,7 @@ namespace FDChess.Model
                 // Temporarily move the King to the new position
                 var originalPosition = Position;
                 Position = newPosition;
-                bool isInCheck = IsInCheck(board);
+                bool isInCheck = board.IsPositionUnderAttack(newPosition, this.Color);
                 Position = originalPosition;
 
                 // If the King is not in check in the new position, the move is valid
