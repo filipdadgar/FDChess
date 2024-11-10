@@ -26,4 +26,12 @@
       </li>
     </ul>
   </div>
+  <div>
+    <h2>Move History</h2>
+    <ul>
+      <li *ngFor="let move of moveHistory">
+        {{ move.piece }} moved from ({{ move.from.Row }}, {{ move.from.Column }}) to ({{ move.to.Row }}, {{ move.to.Column }}) - {{ move.message }}
+      </li>
+    </ul>
+  </div>
 </div>

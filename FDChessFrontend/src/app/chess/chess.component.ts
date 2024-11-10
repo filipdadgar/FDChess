@@ -17,6 +17,7 @@ export class ChessComponent implements OnInit {
   selectedPiece: any;
   possibleMoves: { Row: number, Column: number }[] = [];
   removedPieces: any[] = []; // Declare removedPieces property
+  moveHistory: any[] = []; // Track move history
 
   constructor(private chessService: ChessService, private positionService: PositionService) { }
 
@@ -73,7 +74,6 @@ export class ChessComponent implements OnInit {
   movePiece(row: number, column: number): void {
     console.log('Attempting to move piece to row:', row, 'column:', column);
     console.log('Current possible moves:', this.possibleMoves);
-    // Log each possible move to verify its properties
     this.possibleMoves.forEach(move => {
       console.log('Possible move:', move);
     });
@@ -91,12 +91,27 @@ export class ChessComponent implements OnInit {
         }
       };
 
-      console.log('Move request:', moveRequest); // Log the move request
+      console.log('Move request:', moveRequest);
 
       this.chessService.makeMove(moveRequest).subscribe({
         next: (response) => {
           console.log('Move response:', response);
-          this.gameState = response; // Update the game state with the response
+          if (response.gameState) {
+            this.gameState = response.gameState; // Update the game state with the response
+          } else {
+            this.gameState = response; // Fallback to the entire response if gameState is not present
+          }
+
+          // Add move to move history
+          if (this.selectedPiece) {
+            this.moveHistory.push({
+              piece: this.selectedPiece.Name,
+              from: moveRequest.CurrentPosition,
+              to: moveRequest.NewPosition,
+              message: response.message
+            });
+          }
+
           this.selectedPiece = null; // Deselect the piece after the move
           this.possibleMoves = []; // Clear possible moves
 
@@ -161,6 +176,7 @@ export class ChessComponent implements OnInit {
       next: () => {
         this.getGameState(); // Refresh the game state after resetting
         this.getRemovedPieces(); // Refresh removed pieces after resetting
+        this.moveHistory = []; // Clear move history
       },
       error: (error) => {
         console.error('Error resetting game', error);
