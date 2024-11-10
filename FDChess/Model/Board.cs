@@ -46,7 +46,7 @@ namespace FDChess.Model
             return piece != null && piece.Color != color;
         }
 
-        public void RemovePiece(Position position)
+        public void RemovePiece(Position position, Piece removingPiece)
         {
             var piece = GetPieceAtPosition(position);
             if (piece != null)
@@ -57,6 +57,8 @@ namespace FDChess.Model
                 }
                 piece.IsRemoved = true;
                 piece.Position = new Position(-1, -1); // Set to an invalid position
+                piece.RemovedBy = removingPiece.Color + " " + removingPiece.Name; // Track the piece that removed it
+                piece.RemovedAt = position; // Track the position where it was removed
             }
         }
 
@@ -67,7 +69,7 @@ namespace FDChess.Model
             if (!piece.IsMoveValid(to, this)) throw new InvalidOperationException("Invalid move for the piece.");
             if (piece.Color != null && IsPositionOccupiedByOpponent(to, piece.Color))
             {
-                RemovePiece(to);
+                RemovePiece(to, piece);
             }
             piece.Position = to;
         }

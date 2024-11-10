@@ -22,7 +22,7 @@
     <h2>Removed Pieces</h2>
     <ul>
       <li *ngFor="let piece of removedPieces">
-        {{ piece.name }} ({{ piece.color }})
+        {{ piece.name }} ({{ piece.color }}) - Removed by: {{ piece.removedBy }} at position: {{ piece.removedAt.Row }}, {{ piece.removedAt.Column }}
       </li>
     </ul>
   </div>

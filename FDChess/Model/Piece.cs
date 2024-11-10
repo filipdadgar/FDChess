@@ -12,6 +12,8 @@ namespace FDChess.Model
         public Position Position { get; set; }
         public string? Color { get; set; }
         public bool IsRemoved { get; set; } = false;
+        public string RemovedBy { get; set; } = "";
+        public Position? RemovedAt { get; set; }
 
         // Parameterless constructor for deserialization
         protected Piece()

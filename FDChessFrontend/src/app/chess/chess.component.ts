@@ -196,7 +196,10 @@ export class ChessComponent implements OnInit {
     this.chessService.getRemovedPieces().subscribe({
       next: (data) => {
         console.log('Removed pieces:', data);
-        this.removedPieces = data; // Correctly update the removedPieces property
+        this.removedPieces = data.map((piece: any) => ({
+          ...piece,
+          removedAt: piece.removedAt ? { Row: piece.removedAt.row, Column: piece.removedAt.column } : null
+        })); // Correctly update the removedPieces property
       },
       error: (error) => {
         console.error('Error getting removed pieces', error);
