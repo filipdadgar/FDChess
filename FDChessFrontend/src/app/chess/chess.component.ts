@@ -106,6 +106,7 @@ export class ChessComponent implements OnInit {
           if (this.selectedPiece) {
             this.moveHistory.push({
               piece: this.selectedPiece.Name,
+              color: this.selectedPiece.Color,
               from: moveRequest.CurrentPosition,
               to: moveRequest.NewPosition,
               message: response.message
