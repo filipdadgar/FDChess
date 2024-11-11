@@ -421,12 +421,14 @@ namespace FDChess.Model
         {
             foreach (var piece in board.Pieces.Where(p => p.Color != this.Color && !p.IsRemoved))
             {
+                Console.WriteLine($"Checking if {piece.Color} {piece.Name} at {piece.Position} can attack {position}");
                 if (piece.IsMoveValid(position, board))
                 {
                     Console.WriteLine($"Position {position} is under attack by {piece.Color} {piece.Name} at {piece.Position}");
                     return true;
                 }
             }
+            Console.WriteLine($"Position {position} is not under attack");
             return false;
         }
 
@@ -440,38 +442,17 @@ namespace FDChess.Model
             if (!IsInCheck(board))
                 return false;
 
-            Console.WriteLine($"Checking checkmate for {Color} king at {Position}");
-            
-            // Get all attacking pieces
-            var attackingPieces = board.Pieces
-                .Where(p => p.Color != Color && !p.IsRemoved && p.IsMoveValid(Position, board))
-                .ToList();
-            
-            Console.WriteLine($"Found {attackingPieces.Count} attacking pieces");
-
-            // Check all possible escape squares
+            // Check all possible moves for the king
             var escapeSquares = GetPossibleMoves(board);
             foreach (var escapeSquare in escapeSquares)
             {
-                Console.WriteLine($"Checking escape square: {escapeSquare}");
-                bool canEscape = true;
-                foreach (var attacker in attackingPieces)
+                if (!IsPositionUnderAttack(escapeSquare, board))
                 {
-                    if (attacker.IsMoveValid(escapeSquare, board))
-                    {
-                        Console.WriteLine($"Escape square {escapeSquare} is controlled by {attacker.Name} at {attacker.Position}");
-                        canEscape = false;
-                        break;
-                    }
-                }
-                if (canEscape)
-                {
-                    Console.WriteLine($"King can escape to {escapeSquare}");
-                    return false;
+                    return false; // King can escape to this square
                 }
             }
 
-            // Check if any friendly piece can block or capture
+            // Check if any friendly piece can block or capture the attacking piece
             foreach (var defender in board.Pieces.Where(p => p.Color == Color && !p.IsRemoved))
             {
                 foreach (var move in defender.GetPossibleMoves(board))
@@ -479,7 +460,7 @@ namespace FDChess.Model
                     var originalPosition = defender.Position;
                     var capturedPiece = board.GetPieceAtPosition(move);
                     bool wasRemoved = false;
-                    
+
                     // Simulate the move
                     if (capturedPiece != null)
                     {
@@ -487,26 +468,24 @@ namespace FDChess.Model
                         capturedPiece.IsRemoved = true;
                     }
                     defender.Position = move;
-                    
+
                     bool stillInCheck = IsInCheck(board);
-                    
+
                     // Restore the position
                     defender.Position = originalPosition;
                     if (capturedPiece != null)
                     {
                         capturedPiece.IsRemoved = wasRemoved;
                     }
-                    
+
                     if (!stillInCheck)
                     {
-                        Console.WriteLine($"Checkmate can be prevented by {defender.Name} moving to {move}");
-                        return false;
+                        return false; // Checkmate can be prevented by this move
                     }
                 }
             }
 
-            Console.WriteLine("Checkmate confirmed - no valid moves found");
-            return true;
+            return true; // No valid moves found, checkmate confirmed
         }
 
         public override List<Position> GetPossibleMoves(Board board)

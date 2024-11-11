@@ -122,6 +122,7 @@ namespace FDChess.Services
                         Console.WriteLine($"Checkmate detected for {opponentColor}");
                         _currentGame.GameStatus = "checkmate";
                         _currentGame.CurrentTurn = "none"; // Game is over
+                        Console.WriteLine("Game over");
                         return JsonSerializer.Serialize(new { message = "Checkmate", gameState = _currentGame });
                     }
                     
