@@ -208,8 +208,6 @@ namespace FDChess.Services
         // Return removed pieces from the board
         public List<Piece> GetRemovedPieces()
         {
-            // return _currentGame.Board.Pieces.Where(p => p.IsRemoved).ToList();
-            // get removed pieces from the board and the piece that removed them
             return _currentGame.Board.Pieces.Where(p => p.IsRemoved).ToList();
         }
         
