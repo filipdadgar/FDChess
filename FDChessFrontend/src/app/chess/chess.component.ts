@@ -24,6 +24,7 @@ export class ChessComponent implements OnInit {
   ngOnInit(): void {
     this.getGameState();
     this.getRemovedPieces(); // Fetch removed pieces on initialization
+    this.loadMoveHistory(); // Load move history from local storage
   }
 
   getGameState(): void {
@@ -111,6 +112,7 @@ export class ChessComponent implements OnInit {
               to: moveRequest.NewPosition,
               message: response.message
             });
+            this.saveMoveHistory(); // Save move history to local storage
           }
 
           this.selectedPiece = null; // Deselect the piece after the move
@@ -178,6 +180,7 @@ export class ChessComponent implements OnInit {
         this.getGameState(); // Refresh the game state after resetting
         this.getRemovedPieces(); // Refresh removed pieces after resetting
         this.moveHistory = []; // Clear move history
+        this.saveMoveHistory(); // Save the cleared move history to local storage
       },
       error: (error) => {
         console.error('Error resetting game', error);
@@ -250,5 +253,16 @@ export class ChessComponent implements OnInit {
         ]
       }
     };
+  }
+
+  saveMoveHistory(): void {
+    localStorage.setItem('moveHistory', JSON.stringify(this.moveHistory));
+  }
+
+  loadMoveHistory(): void {
+    const savedHistory = localStorage.getItem('moveHistory');
+    if (savedHistory) {
+      this.moveHistory = JSON.parse(savedHistory);
+    }
   }
 }
