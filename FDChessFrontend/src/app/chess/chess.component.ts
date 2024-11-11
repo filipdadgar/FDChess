@@ -123,6 +123,7 @@ export class ChessComponent implements OnInit {
             alert('Check!');
           } else if (response.message === 'Checkmate') {
             alert('Checkmate! Game over.');
+            this.resetGame(); // Reset the game after checkmate
           } else if (response.message === 'Stalemate') {
             alert('Stalemate! Game over.');
           }
