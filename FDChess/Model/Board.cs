@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿// Board.cs
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 using FDChess.Helper;
@@ -56,9 +57,9 @@ namespace FDChess.Model
                     throw new InvalidOperationException("The king cannot be removed from the board.");
                 }
                 piece.IsRemoved = true;
-                piece.Position = new Position(-1, -1); // Set to an invalid position
-                piece.RemovedBy = removingPiece.Color + " " + removingPiece.Name; // Track the piece that removed it
-                piece.RemovedAt = position; // Track the position where it was removed
+                piece.Position = new Position(-1, -1);
+                piece.RemovedBy = removingPiece.Color + " " + removingPiece.Name;
+                piece.RemovedAt = position;
             }
         }
 
@@ -80,12 +81,10 @@ namespace FDChess.Model
             if (king == null)
                 throw new InvalidOperationException("King not found on the board.");
 
-            Console.WriteLine($"Checking if {color} king at {king.Position} is in check");
             foreach (var piece in Pieces.Where(p => p.Color != color && !p.IsRemoved))
             {
                 if (piece.IsMoveValid(king.Position, this))
                 {
-                    Console.WriteLine($"King is in check by {piece.Name} at {piece.Position}");
                     return true;
                 }
             }
@@ -99,9 +98,7 @@ namespace FDChess.Model
             {
                 throw new InvalidOperationException("King not found on the board.");
             }
-            bool isInCheckmate = king.IsInCheckmate(this);
-            Console.WriteLine($"IsKingInCheckmate for {color}: {isInCheckmate}");
-            return isInCheckmate;
+            return king.IsInCheckmate(this);
         }
 
         public bool IsKingInStalemate(string color)
@@ -116,12 +113,10 @@ namespace FDChess.Model
         
         public bool IsPositionUnderAttack(Position position, string color)
         {
-            Console.WriteLine($"Checking if position {position.Column} {position.Row} is under attack for {color}");
             foreach (var piece in Pieces.Where(p => p.Color != color && !p.IsRemoved))
             {
                 if (piece.IsMoveValid(position, this))
                 {
-                    Console.WriteLine($"Position {position.Column} {position.Row} is under attack by {piece.Color} {piece.Name} at {piece.Position}");
                     return true;
                 }
             }
