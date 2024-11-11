@@ -41,4 +41,6 @@ Response:
 GET /api/games/1
 ```
 
-## Frontend is currently under development and made in Angular.
+## Frontend is currently under development and made in Angular:
+![images/board.png](img.png)
+![images/board_filled.png](img.png)
