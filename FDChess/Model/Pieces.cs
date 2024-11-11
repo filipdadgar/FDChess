@@ -392,7 +392,8 @@ namespace FDChess.Model
 
             if (rowDifference <= 1 && columnDifference <= 1 &&
                 newPosition.Row >= 0 && newPosition.Row < 8 &&
-                newPosition.Column >= 0 && newPosition.Column < 8)
+                newPosition.Column >= 0 && newPosition.Column < 8 &&
+                (columnDifference == 0 || !IsUnderPawnAttack(newPosition, board)))
             {
                 var pieceAtNewPosition = board.GetPieceAtPosition(newPosition);
                 if (pieceAtNewPosition == null || pieceAtNewPosition.Color != this.Color)
@@ -403,7 +404,20 @@ namespace FDChess.Model
             return false;
         }
 
-        private bool IsPositionUnderAttack(Position position, Board board)
+        private bool IsUnderPawnAttack(Position position, Board board)
+        {
+            int pawnDirection = Color == "white" ? 1 : -1;
+            var leftAttackPosition = new Position(position.Row + pawnDirection, position.Column - 1);
+            var rightAttackPosition = new Position(position.Row + pawnDirection, position.Column + 1);
+
+            var leftAttacker = board.GetPieceAtPosition(leftAttackPosition);
+            var rightAttacker = board.GetPieceAtPosition(rightAttackPosition);
+
+            return (leftAttacker is Pawn && leftAttacker?.Color != Color) ||
+                   (rightAttacker is Pawn && rightAttacker?.Color != Color);
+        }
+
+        public bool IsPositionUnderAttack(Position position, Board board)
         {
             foreach (var piece in board.Pieces.Where(p => p.Color != this.Color && !p.IsRemoved))
             {

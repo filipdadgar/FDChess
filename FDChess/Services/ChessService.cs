@@ -82,6 +82,25 @@ namespace FDChess.Services
                 return JsonSerializer.Serialize(new { message = "Not your turn" });
             }
 
+            // Check if the move would put the king in check
+            var kingPosition = _currentGame.Board.Pieces
+                .FirstOrDefault(p => p is King && p.Color == piece.Color)?.Position;
+            if (kingPosition != null)
+            {
+                var tempBoard = CloneBoard(_currentGame.Board);
+                tempBoard.MovePiece(piece.Position, moveRequest.NewPosition);
+                var kingPiece = tempBoard.Pieces.FirstOrDefault(p => p is King && p.Color == piece.Color) as King;
+                if (kingPiece != null && kingPiece.IsInCheck(tempBoard))
+                {
+                    return JsonSerializer.Serialize(new { message = "Invalid move: This move would put your king in check" });
+                }
+            }
+
+            if (piece is King && (piece as King).IsPositionUnderAttack(moveRequest.NewPosition, _currentGame.Board))
+            {
+                return JsonSerializer.Serialize(new { message = "Invalid move: The king cannot move to a position where it would be in check" });
+            }
+
             try
             {
                 _currentGame.Board.MovePiece(piece.Position, moveRequest.NewPosition);
@@ -198,6 +217,12 @@ namespace FDChess.Services
         public List<Piece> GetAvailablePieces()
         {
             return _currentGame.Board.Pieces.Where(p => !p.IsRemoved).ToList();
+        }
+
+        private Board CloneBoard(Board originalBoard)
+        {
+            var serialized = JsonSerializer.Serialize(originalBoard, _options);
+            return JsonSerializer.Deserialize<Board>(serialized, _options)!;
         }
     }
 }
