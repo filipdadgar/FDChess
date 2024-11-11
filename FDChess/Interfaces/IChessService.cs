@@ -15,5 +15,6 @@ namespace FDChess.Interfaces
         List<Position> GetPossibleMoves(int pieceId);
         public List<Piece> GetRemovedPieces();
         public List<Piece> GetAvailablePieces();
+        string PromotePawn(Position position, string newPieceType);
     }
 }

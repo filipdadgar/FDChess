@@ -159,11 +159,13 @@ namespace FDChess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+        
+        [HttpPost("promote")]
+        public IActionResult PromotePawn([FromBody] PromotionRequest promotionRequest)
+        {
+            var result = _chessService.PromotePawn(promotionRequest.Position, promotionRequest.NewPieceType);
+            return Ok(result);
+        }
     }
-
-    public class MoveRequest
-    {
-        public Position CurrentPosition { get; set; }
-        public Position NewPosition { get; set; }
-    }
+    
 }

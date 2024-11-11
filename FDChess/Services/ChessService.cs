@@ -106,6 +106,12 @@ namespace FDChess.Services
                 _currentGame.Board.MovePiece(piece.Position, moveRequest.NewPosition);
                 var opponentColor = piece.Color == "white" ? "black" : "white";
 
+                // Check for pawn promotion
+                if (piece is Pawn && (moveRequest.NewPosition.Row == 0 || moveRequest.NewPosition.Row == 7))
+                {
+                    return JsonSerializer.Serialize(new { message = "Pawn promotion required", gameState = _currentGame });
+                }
+                
                 // Check for check, checkmate, and stalemate conditions
                 if (_currentGame.Board.IsKingInCheck(opponentColor))
                 {
@@ -171,11 +177,14 @@ namespace FDChess.Services
             // Implement logic to create specific piece types based on the name
             switch (name.ToLower())
             {
-                case "pawn":
-                    return new Pawn(id, position, color);
+                case "queen":
+                    return new Queen(id, position, color);
                 case "rook":
                     return new Rook(id, position, color);
-                // Add cases for other piece types
+                case "bishop":
+                    return new Bishop(id, position, color);
+                case "knight":
+                    return new Knight(id, position, color);
                 default:
                     throw new ArgumentException("Invalid piece name");
             }
@@ -221,6 +230,31 @@ namespace FDChess.Services
         {
             var serialized = JsonSerializer.Serialize(originalBoard, _options);
             return JsonSerializer.Deserialize<Board>(serialized, _options)!;
+        }
+        
+        public string PromotePawn(Position position, string newPieceType)
+        {
+            var pawn = _currentGame.Board.GetPieceAtPosition(position) as Pawn;
+            if (pawn == null)
+            {
+                return JsonSerializer.Serialize(new { message = "Invalid promotion: No pawn at the given position" });
+            }
+
+            if ((pawn.Color == "white" && position.Row != 7) || (pawn.Color == "black" && position.Row != 0))
+            {
+                return JsonSerializer.Serialize(new { message = "Invalid promotion: Pawn is not at the last rank" });
+            }
+
+            Piece? newPiece = CreatePiece(newPieceType, pawn.Id, position, pawn.Color);
+            if (newPiece == null)
+            {
+                return JsonSerializer.Serialize(new { message = "Invalid promotion: Invalid piece type" });
+            }
+
+            _currentGame.Board.Pieces.Remove(pawn);
+            _currentGame.Board.Pieces.Add(newPiece);
+
+            return JsonSerializer.Serialize(new { message = "Pawn promoted", gameState = _currentGame });
         }
     }
 }
