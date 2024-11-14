@@ -1,0 +1,298 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject PositionService PositionService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@using System.Text.Json
+@inject IJSRuntime JsRuntime
+
+
+<h1>Chess Game - By Filip</h1>
+<div class="board">
+    @for (int rowIndex = 0; rowIndex < 8; rowIndex++)
+    {
+        <div class="row">
+            @for (int colIndex = 0; colIndex < 8; colIndex++)
+            {
+                var piece = GetCurrentPiece(rowIndex, colIndex);
+                bool isPossibleMove = IsPossibleMove(rowIndex, colIndex);
+                string pieceColor = GetPieceColor(piece);
+
+                
+                var index = rowIndex;
+                
+                var index1 = colIndex;
+                <div class="cell @(isPossibleMove ? "possible-move " : "") @(pieceColor == "white" ? "white-piece" : (pieceColor == "black" ? "black-piece" : ""))"
+                     @onclick="@(() => HandleCellClick(index, index1))">
+                    @if (piece != null)
+                    {
+                    <div>@piece.Name</div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<button @onclick="GetGameState">Get State</button>
+<button @onclick="ResetGame">Reset Game</button>
+<button @onclick="SimulateGame">Simulate Game</button>
+
+<div>
+    <h2>Removed Pieces</h2>
+    <ul>
+        @foreach (var piece in _removedPieces)
+        {
+            <li>@piece.Name (@piece.Color) - Removed by: @piece.RemovedBy at position: @piece.RemovedAt.Row, @piece.RemovedAt.Column</li>
+        }
+    </ul>
+</div>
+
+<div>
+    <h2>Move History</h2>
+    <ul>
+        @foreach (var move in _moveHistory)
+        {
+            <li>@move.Color @move.Piece moved from (@move.From.Row, @move.From.Column) to (@move.To.Row, @move.To.Column) - @move.Message</li>
+        }
+    </ul>
+</div>
+
+@code {
+    private ChessGameState _gameState = new ChessGameState();
+    private Piece? _selectedPiece;
+    private List<Position> _possibleMoves = new List<Position>();
+    private List<RemovedPiece> _removedPieces = new List<RemovedPiece>();
+    private List<MoveHistoryEntry> _moveHistory = new List<MoveHistoryEntry>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine("Initializing..."); 
+        await GetGameState();
+        await GetRemovedPieces(); // Fetch removed pieces on initialization
+        await LoadMoveHistory(); // Load move history from local storage
+    }
+
+    private async Task GetGameState()
+    {
+        try
+        {
+            Console.WriteLine("Getting game state...");
+            _gameState = await Http.GetFromJsonAsync<ChessGameState>("http://localhost:5141/api/chess/state") ?? new ChessGameState();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting game state: {ex.Message}");
+            _gameState = InitializeGameState(); // Initialize with default values if error occurs
+        }
+    }
+
+    private async Task SelectPiece(int row, int column)
+    {
+        _selectedPiece = _gameState.Board.Pieces.FirstOrDefault(p => p.Position.Row == row && p.Position.Column == column);
+        if (_selectedPiece != null)
+        {
+            await GetPossibleMoves(_selectedPiece.Id);
+        }
+        else
+        {
+            Console.WriteLine("No piece found at the selected position");
+        }
+    }
+
+    private async Task GetPossibleMoves(int pieceId)
+    {
+        try
+        {
+            _possibleMoves = await Http.GetFromJsonAsync<List<Position>>($"http://localhost:5141/api/chess/moves/{pieceId}") ?? new List<Position>();
+            Console.WriteLine("Possible moves for piece:");
+            foreach (var move in _possibleMoves)
+            {
+                Console.WriteLine($"{move.Row}, {move.Column}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting possible moves: {ex.Message}");
+        }
+    }
+
+    private async Task MovePiece(int row, int column)
+    {
+        var possibleMove = _possibleMoves.FirstOrDefault(move => move.Row == row && move.Column == column);
+        if (_selectedPiece != null && possibleMove != null)
+        {
+            var moveRequest = new
+            {
+                CurrentPosition = _selectedPiece.Position,
+                NewPosition = new Position { Row = row, Column = column }
+            };
+
+            try
+            {
+                var response = await Http.PostAsJsonAsync("http://localhost:5141/api/chess/move", moveRequest);
+                if (response.IsSuccessStatusCode)
+                {
+                    _gameState = await response.Content.ReadFromJsonAsync<ChessGameState>() ?? new ChessGameState();
+
+                    // Add move to move history
+                    if (_selectedPiece != null)
+                    {
+                        var moveResponse = response.Content.ReadFromJsonAsync<MoveResponse>().Result;
+                        if (moveResponse != null)
+                            _moveHistory.Add(new MoveHistoryEntry
+                            {
+                                Piece = _selectedPiece.Name,
+                                Color = _selectedPiece.Color,
+                                From = moveRequest.CurrentPosition,
+                                To = moveRequest.NewPosition,
+                                Message = moveResponse.Message
+                            });
+                        SaveMoveHistory(); // Save move history to local storage
+                    }
+
+                    _selectedPiece = null; // Deselect the piece after the move
+                    _possibleMoves.Clear(); // Clear possible moves
+
+                    // Check for special conditions
+                    var message = response.Content.ReadFromJsonAsync<MoveResponse>().Result?.Message;
+                    if (message == "Check")
+                    {
+                        await JsRuntime.InvokeVoidAsync("alert", "Check!");
+                    }
+                    else if (message == "Checkmate")
+                    {
+                        await JsRuntime.InvokeVoidAsync("alert", "Checkmate! Game over.");
+                        await ResetGame(); // Reset the game after checkmate
+                    }
+                    else if (message == "Stalemate")
+                    {
+                        await JsRuntime.InvokeVoidAsync("alert", "Stalemate! Game over.");
+                    }
+
+                    await GetGameState();
+                    await GetRemovedPieces(); // Update removed pieces after making the move
+                    
+                    // Refresh the board
+                    StateHasChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error making move: {ex.Message}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Invalid move. Selected piece: " + _selectedPiece?.Name + ", Possible move: " + possibleMove);
+        }
+    }
+
+    private void HandleCellClick(int row, int column)
+    {
+        if (_selectedPiece != null)
+        {
+            MovePiece(row, column).ConfigureAwait(false);
+        }
+        else
+        {
+            SelectPiece(row, column).ConfigureAwait(false);
+        }
+    }
+
+    private Piece? GetCurrentPiece(int row, int column) => _gameState.Board.Pieces.FirstOrDefault(p => p.Position.Row == row && p.Position.Column == column);
+
+    private bool IsPossibleMove(int row, int column) => _possibleMoves.Any(move => move.Row == row && move.Column == column);
+
+    private string GetPieceColor(Piece? piece) => piece?.Color ?? "";
+
+    private async Task ResetGame()
+    {
+        try
+        {
+            await Http.PostAsync("http://localhost:5141/api/chess/reset", null);
+            Console.WriteLine("Initializing..."); 
+            await GetGameState();
+            await GetRemovedPieces(); // Fetch removed pieces on initialization
+            await LoadMoveHistory(); // Load move history from local storage
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error resetting game: {ex.Message}");
+        }
+    }
+
+    private async Task SimulateGame()
+    {
+        try
+        {
+            var response = await Http.PostAsync("http://localhost:5141/api/chess/simulate", null);
+            if (response.IsSuccessStatusCode)
+            {
+                _gameState = await response.Content.ReadFromJsonAsync<ChessGameState>() ?? new ChessGameState();
+                await GetRemovedPieces(); // Refresh removed pieces after simulating game
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error simulating game: {ex.Message}");
+        }
+    }
+
+    private async Task GetRemovedPieces()
+    {
+        try
+        {
+            _removedPieces = await Http.GetFromJsonAsync<List<RemovedPiece>>("http://localhost:5141/api/chess/removed") ?? new List<RemovedPiece>();
+            Console.WriteLine("Removed pieces:");
+            foreach (var piece in _removedPieces)
+            {
+                Console.WriteLine($"{piece.Name} ({piece.Color}) - Removed by: {piece.RemovedBy} at position: {piece.RemovedAt.Row}, {piece.RemovedAt.Column}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting removed pieces: {ex.Message}");
+        }
+    }
+
+    private ChessGameState InitializeGameState()
+    {
+        // Initialize the game state with default values
+        return new ChessGameState
+        {
+            Board = new Board
+            {
+                Id = 1,
+                Name = "Default Board",
+                Description = "Initial game state",
+                Pieces = new List<Piece>
+                {
+                    new Piece { Id = 1, Name = "Rook", Position = new Position { Row = 0, Column = 0 }, Color = "white" },
+                    new Piece { Id = 2, Name = "Knight", Position = new Position { Row = 0, Column = 1 }, Color = "white" },
+                    // Add all pieces here
+                }
+            }
+        };
+    }
+
+    private void SaveMoveHistory()
+    {
+        LocalStorage.SetItemAsync("moveHistory", JsonSerializer.Serialize(_moveHistory));
+    }
+
+    private async Task LoadMoveHistory()
+    {
+        try
+        {
+            var savedHistory = await LocalStorage.GetItemAsStringAsync("moveHistory");
+            if (!string.IsNullOrEmpty(savedHistory))
+            {
+                _moveHistory = JsonSerializer.Deserialize<List<MoveHistoryEntry>>(savedHistory) ?? new List<MoveHistoryEntry>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading move history: {ex.Message}");
+        }
+    }
+}
