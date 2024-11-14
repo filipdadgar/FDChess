@@ -41,6 +41,6 @@ Response:
 GET /api/games/1
 ```
 
-## Frontend is currently under development and made in Angular:
+## Frontend is currently under development and made in Angular(Working) and Blazor(Semi-Working):
 ![images/board.png](images/board.png)
 ![images/board_filled.png](images/board_filled.png)

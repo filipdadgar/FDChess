@@ -5,6 +5,8 @@ VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FDChess", "FDChess\FDChess.csproj", "{75C2723C-EB25-4607-B906-A44440EFF16C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FDChessBlazorClient", "FDChessBlazorClient\FDChessBlazorClient.csproj", "{8E74A5B6-7768-4768-A7D3-56BE49B9A9D0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{75C2723C-EB25-4607-B906-A44440EFF16C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75C2723C-EB25-4607-B906-A44440EFF16C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75C2723C-EB25-4607-B906-A44440EFF16C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E74A5B6-7768-4768-A7D3-56BE49B9A9D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E74A5B6-7768-4768-A7D3-56BE49B9A9D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E74A5B6-7768-4768-A7D3-56BE49B9A9D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E74A5B6-7768-4768-A7D3-56BE49B9A9D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
