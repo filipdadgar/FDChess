@@ -96,7 +96,7 @@ namespace FDChess.Services
                 }
             }
 
-            if (piece is King && (piece as King).IsPositionUnderAttack(moveRequest.NewPosition, _currentGame.Board))
+            if (piece is King king && king.IsPositionUnderAttack(moveRequest.NewPosition, _currentGame.Board))
             {
                 return JsonSerializer.Serialize(new { message = "Invalid move: The king cannot move to a position where it would be in check" });
             }
@@ -246,14 +246,17 @@ namespace FDChess.Services
                 return JsonSerializer.Serialize(new { message = "Invalid promotion: Pawn is not at the last rank" });
             }
 
-            Piece? newPiece = CreatePiece(newPieceType, pawn.Id, position, pawn.Color);
-            if (newPiece == null)
+            if (pawn.Color != null)
             {
-                return JsonSerializer.Serialize(new { message = "Invalid promotion: Invalid piece type" });
-            }
+                Piece? newPiece = CreatePiece(newPieceType, pawn.Id, position, pawn.Color);
+                if (newPiece == null)
+                {
+                    return JsonSerializer.Serialize(new { message = "Invalid promotion: Invalid piece type" });
+                }
 
-            _currentGame.Board.Pieces.Remove(pawn);
-            _currentGame.Board.Pieces.Add(newPiece);
+                _currentGame.Board.Pieces.Remove(pawn);
+                _currentGame.Board.Pieces.Add(newPiece);
+            }
 
             return JsonSerializer.Serialize(new { message = "Pawn promoted", gameState = _currentGame });
         }

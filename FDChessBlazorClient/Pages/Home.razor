@@ -132,29 +132,30 @@
                 var response = await Http.PostAsJsonAsync("http://localhost:5141/api/chess/move", moveRequest);
                 if (response.IsSuccessStatusCode)
                 {
-                    _gameState = await response.Content.ReadFromJsonAsync<ChessGameState>() ?? new ChessGameState();
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    _gameState = JsonSerializer.Deserialize<ChessGameState>(responseContent) ?? new ChessGameState();
 
                     // Add move to move history
                     if (_selectedPiece != null)
                     {
-                        var moveResponse = response.Content.ReadFromJsonAsync<MoveResponse>().Result;
+                        var moveResponse = JsonSerializer.Deserialize<MoveResponse>(responseContent);
                         if (moveResponse != null)
                             _moveHistory.Add(new MoveHistoryEntry
-                            {
-                                Piece = _selectedPiece.Name,
-                                Color = _selectedPiece.Color,
-                                From = moveRequest.CurrentPosition,
-                                To = moveRequest.NewPosition,
-                                Message = moveResponse.Message
-                            });
-                        SaveMoveHistory(); // Save move history to local storage
+                                {
+                                    Piece = _selectedPiece.Name,
+                                    Color = _selectedPiece.Color,
+                                    From = moveRequest.CurrentPosition,
+                                    To = moveRequest.NewPosition,
+                                    Message = moveResponse.Message
+                                });
+                        await SaveMoveHistory(); // Save move history to local storage
                     }
 
                     _selectedPiece = null; // Deselect the piece after the move
                     _possibleMoves.Clear(); // Clear possible moves
 
                     // Check for special conditions
-                    var message = response.Content.ReadFromJsonAsync<MoveResponse>().Result?.Message;
+                    var message = JsonSerializer.Deserialize<MoveResponse>(responseContent)?.Message;
                     if (message == "Check")
                     {
                         await JsRuntime.InvokeVoidAsync("alert", "Check!");
@@ -171,9 +172,6 @@
 
                     await GetGameState();
                     await GetRemovedPieces(); // Update removed pieces after making the move
-                    
-                    // Refresh the board
-                    StateHasChanged();
                 }
             }
             catch (Exception ex)
@@ -187,15 +185,16 @@
         }
     }
 
-    private void HandleCellClick(int row, int column)
+
+    private async Task HandleCellClick(int row, int column)
     {
         if (_selectedPiece != null)
         {
-            MovePiece(row, column).ConfigureAwait(false);
+            await MovePiece(row, column).ConfigureAwait(false);
         }
         else
         {
-            SelectPiece(row, column).ConfigureAwait(false);
+            await SelectPiece(row, column).ConfigureAwait(false);
         }
     }
 
@@ -269,15 +268,53 @@
                 {
                     new Piece { Id = 1, Name = "Rook", Position = new Position { Row = 0, Column = 0 }, Color = "white" },
                     new Piece { Id = 2, Name = "Knight", Position = new Position { Row = 0, Column = 1 }, Color = "white" },
-                    // Add all pieces here
+                    new Piece { Id = 3, Name = "Bishop", Position = new Position { Row = 0, Column = 2 }, Color = "white" },
+                    new Piece { Id = 4, Name = "Queen", Position = new Position { Row = 0, Column = 3 }, Color = "white" },
+                    new Piece { Id = 5, Name = "King", Position = new Position { Row = 0, Column = 4 }, Color = "white" },
+                    new Piece { Id = 6, Name = "Bishop", Position = new Position { Row = 0, Column = 5 }, Color = "white" },
+                    new Piece { Id = 7, Name = "Knight", Position = new Position { Row = 0, Column = 6 }, Color = "white" },
+                    new Piece { Id = 8, Name = "Rook", Position = new Position { Row = 0, Column = 7 }, Color = "white" },
+                    new Piece { Id = 9, Name = "Pawn", Position = new Position { Row = 1, Column = 0 }, Color = "white" },
+                    new Piece { Id = 10, Name = "Pawn", Position = new Position { Row = 1, Column = 1 }, Color = "white" },
+                    new Piece { Id = 11, Name = "Pawn", Position = new Position { Row = 1, Column = 2 }, Color = "white" },
+                    new Piece { Id = 12, Name = "Pawn", Position = new Position { Row = 1, Column = 3 }, Color = "white" },
+                    new Piece { Id = 13, Name = "Pawn", Position = new Position { Row = 1, Column = 4 }, Color = "white" },
+                    new Piece { Id = 14, Name = "Pawn", Position = new Position { Row = 1, Column = 5 }, Color = "white" },
+                    new Piece { Id = 15, Name = "Pawn", Position = new Position { Row = 1, Column = 6 }, Color = "white" },
+                    new Piece { Id = 16, Name = "Pawn", Position = new Position { Row = 1, Column = 7 }, Color = "white" },
+                    new Piece { Id = 17, Name = "Rook", Position = new Position { Row = 7, Column = 0 }, Color = "black" },
+                    new Piece { Id = 18, Name = "Knight", Position = new Position { Row = 7, Column = 1 }, Color = "black" },
+                    new Piece { Id = 19, Name = "Bishop", Position = new Position { Row = 7, Column = 2 }, Color = "black" },
+                    new Piece { Id = 20, Name = "Queen", Position = new Position { Row = 7, Column = 3 }, Color = "black" },
+                    new Piece { Id = 21, Name = "King", Position = new Position { Row = 7, Column = 4 }, Color = "black" },
+                    new Piece { Id = 22, Name = "Bishop", Position = new Position { Row = 7, Column = 5 }, Color = "black" },
+                    new Piece { Id = 23, Name = "Knight", Position = new Position { Row = 7, Column = 6 }, Color = "black" },
+                    new Piece { Id = 24, Name = "Rook", Position = new Position { Row = 7, Column = 7 }, Color = "black" },
+                    new Piece { Id = 25, Name = "Pawn", Position = new Position { Row = 6, Column = 0 }, Color = "black" },
+                    new Piece { Id = 26, Name = "Pawn", Position = new Position { Row = 6, Column = 1 }, Color = "black" },
+                    new Piece { Id = 27, Name = "Pawn", Position = new Position { Row = 6, Column = 2 }, Color = "black" },
+                    new Piece { Id = 28, Name = "Pawn", Position = new Position { Row = 6, Column = 3 }, Color = "black" },
+                    new Piece { Id = 29, Name = "Pawn", Position = new Position { Row = 6, Column = 4 }, Color = "black" },
+                    new Piece { Id = 30, Name = "Pawn", Position = new Position { Row = 6, Column = 5 }, Color = "black" },
+                    new Piece { Id = 31, Name = "Pawn", Position = new Position { Row = 6, Column = 6 }, Color = "black" },
+                    new Piece { Id = 32, Name = "Pawn", Position = new Position { Row = 6, Column = 7 }, Color = "black" }
+
                 }
             }
         };
     }
 
-    private void SaveMoveHistory()
+    private async Task SaveMoveHistory()
     {
-        LocalStorage.SetItemAsync("moveHistory", JsonSerializer.Serialize(_moveHistory));
+        try
+        {
+            var serializedHistory = JsonSerializer.Serialize(_moveHistory);
+            await LocalStorage.SetItemAsync("moveHistory", serializedHistory);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving move history: {ex.Message}");
+        }
     }
 
     private async Task LoadMoveHistory()
