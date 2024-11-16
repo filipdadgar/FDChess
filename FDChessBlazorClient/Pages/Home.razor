@@ -212,7 +212,7 @@
             Console.WriteLine("Initializing..."); 
             await GetGameState();
             await GetRemovedPieces(); // Fetch removed pieces on initialization
-            await LoadMoveHistory(); // Load move history from local storage
+           // await LoadMoveHistory(); // Load move history from local storage
         }
         catch (Exception ex)
         {
@@ -324,8 +324,15 @@
             var savedHistory = await LocalStorage.GetItemAsStringAsync("moveHistory");
             if (!string.IsNullOrEmpty(savedHistory))
             {
-                _moveHistory = JsonSerializer.Deserialize<List<MoveHistoryEntry>>(savedHistory) ?? new List<MoveHistoryEntry>();
-            }
+                Console.WriteLine($"Loaded move history JSON: {savedHistory}");
+                _moveHistory = JsonSerializer.Deserialize<List<MoveHistoryEntry>>(savedHistory, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }) ?? new List<MoveHistoryEntry>();            }
+        }
+        catch (JsonException jsonEx)
+        {
+            Console.WriteLine($"JSON error loading move history: {jsonEx.Message}");
         }
         catch (Exception ex)
         {
