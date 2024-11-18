@@ -3,6 +3,7 @@ using FDChess.Controllers;
 using FDChess.Helper;
 using FDChess.Interfaces;
 using FDChess.Model;
+using Microsoft.SemanticKernel.Services;
 
 namespace FDChess.Services
 {
@@ -14,10 +15,28 @@ namespace FDChess.Services
         // Variables
         private Game _currentGame;
         private readonly JsonSerializerOptions _options;
-        
+        private readonly AIService _aiService;
+
+
         public ChessService()
         {
             _options = new JsonSerializerOptions { Converters = { new PieceConverter() } };
+
+            // Initialize the game with a default state
+            var board = new Board
+            {
+                Id = 1,
+                Name = "Default Game",
+                Description = "Initial game state",
+                Pieces = InitializeDefaultPieces()
+            };
+            _currentGame = new Game(1, "Default Game", "active", board);
+        }
+
+        public ChessService(AIService aiService)
+        {
+            _options = new JsonSerializerOptions { Converters = { new PieceConverter() } };
+            _aiService = aiService;
 
             // Initialize the game with a default state
             var board = new Board
@@ -260,5 +279,21 @@ namespace FDChess.Services
 
             return JsonSerializer.Serialize(new { message = "Pawn promoted", gameState = _currentGame });
         }
+
+        public async Task<string> DescribeBoardAsync()
+        {
+            if (_aiService == null)
+            {
+                throw new InvalidOperationException("_aiService is not initialized.");
+            }
+
+            if (_currentGame?.Board == null)
+            {
+                throw new InvalidOperationException("_currentGame or _currentGame.Board is not initialized.");
+            }
+
+            return await _aiService.DescribeBoardAsync(_currentGame.Board);
+        }
+
     }
 }

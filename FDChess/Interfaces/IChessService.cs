@@ -1,4 +1,5 @@
-﻿using FDChess.Controllers;
+﻿using System.Text.Json;
+using FDChess.Controllers;
 using FDChess.Model;
 
 namespace FDChess.Interfaces
@@ -16,5 +17,6 @@ namespace FDChess.Interfaces
         public List<Piece> GetRemovedPieces();
         public List<Piece> GetAvailablePieces();
         string PromotePawn(Position position, string newPieceType);
+        Task<string> DescribeBoardAsync();
     }
 }

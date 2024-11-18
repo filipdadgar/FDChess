@@ -166,6 +166,20 @@ namespace FDChess.Controllers
             var result = _chessService.PromotePawn(promotionRequest.Position, promotionRequest.NewPieceType);
             return Ok(result);
         }
+
+        [HttpGet("describe")]
+        public async Task<IActionResult> DescribeBoard()
+        {
+            try
+            {
+                var description = await _chessService.DescribeBoardAsync();
+                return Ok(new { description });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
     }
     
 }

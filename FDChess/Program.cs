@@ -12,6 +12,7 @@ namespace FDChess
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.d
+            builder.Services.AddSingleton<AIService>();
             builder.Services.AddSingleton<IChessService, ChessService>();
 
 
