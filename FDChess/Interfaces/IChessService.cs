@@ -18,5 +18,6 @@ namespace FDChess.Interfaces
         public List<Piece> GetAvailablePieces();
         string PromotePawn(Position position, string newPieceType);
         Task<string> DescribeBoardAsync();
+        Task<string> MakeAgentMoveAsync();
     }
 }

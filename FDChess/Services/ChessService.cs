@@ -295,5 +295,28 @@ namespace FDChess.Services
             return await _aiService.DescribeBoardAsync(_currentGame.Board);
         }
 
+        public async Task<string> MakeAgentMoveAsync()
+        {
+            if (_aiService == null)
+            {
+                throw new InvalidOperationException("_aiService is not initialized.");
+            }
+
+            if (_currentGame?.Board == null)
+            {
+                throw new InvalidOperationException("_currentGame or _currentGame.Board is not initialized.");
+            }
+
+            var moveResponse = await _aiService.MakeMoveAsync(_currentGame.Board, _currentGame.CurrentTurn);
+            var move = JsonSerializer.Deserialize<MoveRequest>(moveResponse);
+
+            if (move == null)
+            {
+                return JsonSerializer.Serialize(new { message = "Invalid move from AI" });
+            }
+
+            return MakeMove(move);
+        }
+
     }
 }

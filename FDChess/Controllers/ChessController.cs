@@ -18,7 +18,7 @@ namespace FDChess.Controllers
         {
             _chessService = chessService;
         }
-        
+
         [HttpPost("move")]
         public IActionResult MakeMove([FromBody] MoveRequest moveRequest)
         {
@@ -76,6 +76,7 @@ namespace FDChess.Controllers
                     _chessService.SetGameState(JsonSerializer.Serialize(defaultGame));
                     state = _chessService.GetGameState();
                 }
+
                 return Ok(state);
             }
             catch (Exception ex)
@@ -83,7 +84,7 @@ namespace FDChess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-        
+
         [HttpPost("reset")]
         public IActionResult ResetGame()
         {
@@ -97,7 +98,7 @@ namespace FDChess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-        
+
         [HttpGet("moves/{pieceId}")]
         public IActionResult GetPossibleMoves(int pieceId)
         {
@@ -111,7 +112,7 @@ namespace FDChess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-        
+
         [HttpPost("simulate")]
         public IActionResult SimulateGame()
         {
@@ -127,7 +128,7 @@ namespace FDChess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-        
+
         // Get list of pieces on the board with color and position
         [HttpGet("pieces")]
         public IActionResult GetPieces()
@@ -144,7 +145,7 @@ namespace FDChess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-        
+
         // Get list of removed pieces
         [HttpGet("removed")]
         public IActionResult GetRemovedPieces()
@@ -159,7 +160,7 @@ namespace FDChess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-        
+
         [HttpPost("promote")]
         public IActionResult PromotePawn([FromBody] PromotionRequest promotionRequest)
         {
@@ -167,7 +168,7 @@ namespace FDChess.Controllers
             return Ok(result);
         }
 
-        [HttpGet("describe")]
+        [HttpGet("AI-describe")]
         public async Task<IActionResult> DescribeBoard()
         {
             try
@@ -180,6 +181,37 @@ namespace FDChess.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+        [HttpGet("AI-move")]
+        public async Task<IActionResult> MakeAgentMove()
+        {
+            try
+            {
+                var result = await _chessService.MakeAgentMoveAsync();
+                var response = JsonSerializer.Deserialize<Dictionary<string, object>>(result);
+
+                if (response != null && response.ContainsKey("message"))
+                {
+                    var message = response["message"].ToString();
+                    var gameState = response.ContainsKey("gameState") ? response["gameState"] : null;
+
+                    if (message == "Check" || message == "Checkmate" || message == "Stalemate")
+                    {
+                        return Ok(new { message, gameState });
+                    }
+                    else if (message == "Invalid move")
+                    {
+                        return BadRequest(new { message });
+                    }
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
     }
-    
+
 }

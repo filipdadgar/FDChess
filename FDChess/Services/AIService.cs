@@ -61,5 +61,20 @@ namespace FDChess.Services
             // Return the description as a JSON string
             return JsonSerializer.Serialize(new { description = descriptionContent });
         }
+
+        // Use the agent to make a move
+        public async Task<string> MakeMoveAsync(Board board, string currentTurn)
+        {
+            var messages = new List<IMessage>
+            {
+                new TextMessage(Role.User, $"Make a move for {currentTurn} on the following chess board: {board}")
+            };
+
+            var response = await _lmagent.GenerateReplyAsync(messages);
+            var moveContent = response.GetContent() ?? "No move available.";
+
+            // Return the move as a JSON string
+            return JsonSerializer.Serialize(new { move = moveContent });
+        }
     }
 }
