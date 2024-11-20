@@ -40,7 +40,7 @@ public class QuickGameSimulation
         _chessService = new ChessService(featureManager, aiService);
     }
 
-    public void Run()
+    public async Task RunAsync()
     {
         var moves = new List<MoveRequest>
         {
@@ -56,7 +56,7 @@ public class QuickGameSimulation
 
         foreach (var move in moves)
         {
-            var response = _chessService.MakeMove(move);
+            var response = await _chessService.MakeMoveAsync(move);
             Console.WriteLine($"Move result: {response}");
             Console.WriteLine($"Board state after move:");
             Console.WriteLine(_chessService.GetGameState());

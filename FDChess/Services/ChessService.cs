@@ -19,22 +19,6 @@ namespace FDChess.Services
         private readonly AIService _aiService;
         private readonly IFeatureManager _featureManager;
 
-
-        //public ChessService()
-        //{
-        //    _options = new JsonSerializerOptions { Converters = { new PieceConverter() } };
-
-        //    // Initialize the game with a default state
-        //    var board = new Board
-        //    {
-        //        Id = 1,
-        //        Name = "Default Game",
-        //        Description = "Initial game state",
-        //        Pieces = InitializeDefaultPieces()
-        //    };
-        //    _currentGame = new Game(1, "Default Game", "active", board);
-        //}
-
         public ChessService(IFeatureManager featureManager, AIService aiService = null)
         {
             _options = new JsonSerializerOptions { Converters = { new PieceConverter() } };
@@ -50,7 +34,6 @@ namespace FDChess.Services
             {
                 Console.WriteLine("ChessService started without AIService.");
             }
-
 
             // Initialize the game with a default state
             var board = new Board
@@ -101,8 +84,8 @@ namespace FDChess.Services
                 new Pawn(32, new Position(6, 7), "black")
             };
         }
-        
-        public string MakeMove(MoveRequest moveRequest)
+
+        public async Task<string> MakeMoveAsync(MoveRequest moveRequest)
         {
             var piece = _currentGame.Board.GetPieceAtPosition(moveRequest.CurrentPosition);
             if (piece == null)
@@ -144,7 +127,7 @@ namespace FDChess.Services
                 {
                     return JsonSerializer.Serialize(new { message = "Pawn promotion required", gameState = _currentGame });
                 }
-                
+
                 // Check for check, checkmate, and stalemate conditions
                 if (_currentGame.Board.IsKingInCheck(opponentColor))
                 {
@@ -158,7 +141,7 @@ namespace FDChess.Services
                         Console.WriteLine("Game over");
                         return JsonSerializer.Serialize(new { message = "Checkmate", gameState = _currentGame });
                     }
-                    
+
                     Console.WriteLine($"Check detected for {opponentColor}");
                     _currentGame.CurrentTurn = opponentColor;
                     return JsonSerializer.Serialize(new { message = "Check", gameState = _currentGame });
@@ -172,6 +155,13 @@ namespace FDChess.Services
                 // Switch turns
                 _currentGame.CurrentTurn = opponentColor;
                 _currentGame.GameStatus = "active";
+
+                // If AI service is enabled and it's the AI's turn, make the AI move
+                if (_aiService != null && _currentGame.CurrentTurn == "black")
+                {
+                    var aiMoveResponse = await MakeAgentMoveAsync();
+                    return aiMoveResponse;
+                }
             }
             catch (InvalidOperationException ex)
             {
@@ -181,7 +171,7 @@ namespace FDChess.Services
             // Update the current game state
             return JsonSerializer.Serialize(new { message = "Move successful", gameState = _currentGame });
         }
-        
+
         public string GetGameState()
         {
             return JsonSerializer.Serialize(_currentGame, _options);
@@ -223,7 +213,7 @@ namespace FDChess.Services
                     throw new ArgumentException("Invalid piece name");
             }
         }
-        
+
         public List<Position> GetPossibleMoves(int pieceId)
         {
             var piece = _currentGame.Board.Pieces.FirstOrDefault(p => p.Id == pieceId);
@@ -235,7 +225,7 @@ namespace FDChess.Services
             // Assuming each piece has a method to get possible moves
             return piece.GetPossibleMoves(_currentGame.Board);
         }
-        
+
         public void ResetGame()
         {
             var board = new Board
@@ -247,13 +237,13 @@ namespace FDChess.Services
             };
             _currentGame = new Game(1, "Default Game", "active", board);
         }
-        
+
         // Return removed pieces from the board
         public List<Piece> GetRemovedPieces()
         {
             return _currentGame.Board.Pieces.Where(p => p.IsRemoved).ToList();
         }
-        
+
         // Get available pieces on the board
         public List<Piece> GetAvailablePieces()
         {
@@ -265,7 +255,7 @@ namespace FDChess.Services
             var serialized = JsonSerializer.Serialize(originalBoard, _options);
             return JsonSerializer.Deserialize<Board>(serialized, _options)!;
         }
-        
+
         public string PromotePawn(Position position, string newPieceType)
         {
             var pawn = _currentGame.Board.GetPieceAtPosition(position) as Pawn;
@@ -329,8 +319,7 @@ namespace FDChess.Services
                 return JsonSerializer.Serialize(new { message = "Invalid move from AI" });
             }
 
-            return MakeMove(move);
+            return await MakeMoveAsync(move);
         }
-
     }
 }

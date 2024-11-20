@@ -6,7 +6,7 @@ namespace FDChess.Interfaces
 {
     public interface IChessService
     {
-        string MakeMove(MoveRequest moveRequest);
+        Task<string> MakeMoveAsync(MoveRequest moveRequest);
         string GetGameState();
         void SetGameState(string gameState);
         Game CreateGame(string name, string state, Board board);

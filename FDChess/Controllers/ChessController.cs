@@ -20,11 +20,11 @@ namespace FDChess.Controllers
         }
 
         [HttpPost("move")]
-        public IActionResult MakeMove([FromBody] MoveRequest moveRequest)
+        public async Task<IActionResult> MakeMove([FromBody] MoveRequest moveRequest)
         {
             try
             {
-                var result = _chessService.MakeMove(moveRequest);
+                var result = await _chessService.MakeMoveAsync(moveRequest);
                 var response = JsonSerializer.Deserialize<Dictionary<string, object>>(result);
 
                 if (response != null && response.ContainsKey("message"))
@@ -119,7 +119,7 @@ namespace FDChess.Controllers
             try
             {
                 var simulation = new QuickGameSimulation();
-                simulation.Run();
+                _ = simulation.RunAsync();
                 var state = _chessService.GetGameState();
                 return Ok(state);
             }
