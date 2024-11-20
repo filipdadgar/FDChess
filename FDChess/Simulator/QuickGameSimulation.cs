@@ -1,6 +1,9 @@
 using FDChess.Controllers;
 using FDChess.Model;
 using FDChess.Services;
+using Microsoft.FeatureManagement;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 public class QuickGameSimulation
 {
@@ -8,7 +11,33 @@ public class QuickGameSimulation
 
     public QuickGameSimulation()
     {
-        _chessService = new ChessService();
+        // Create a service collection
+        var serviceCollection = new ServiceCollection();
+
+        // Add configuration
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .Build();
+        serviceCollection.AddSingleton<IConfiguration>(configuration);
+
+        // Add feature management
+        serviceCollection.AddFeatureManagement(configuration.GetSection("FeatureManagement"));
+
+        // Build the service provider
+        var serviceProvider = serviceCollection.BuildServiceProvider();
+
+        // Get the feature manager
+        var featureManager = serviceProvider.GetRequiredService<IFeatureManager>();
+
+        // Optionally create an AIService instance if needed
+        AIService? aiService = null;
+        if (featureManager.IsEnabledAsync("AIService").Result)
+        {
+            aiService = new AIService();
+        }
+
+        // Create the ChessService instance
+        _chessService = new ChessService(featureManager, aiService);
     }
 
     public void Run()
@@ -34,3 +63,4 @@ public class QuickGameSimulation
         }
     }
 }
+

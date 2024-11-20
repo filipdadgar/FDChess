@@ -3,6 +3,7 @@ using FDChess.Controllers;
 using FDChess.Helper;
 using FDChess.Interfaces;
 using FDChess.Model;
+using Microsoft.FeatureManagement;
 using Microsoft.SemanticKernel.Services;
 
 namespace FDChess.Services
@@ -16,27 +17,40 @@ namespace FDChess.Services
         private Game _currentGame;
         private readonly JsonSerializerOptions _options;
         private readonly AIService _aiService;
+        private readonly IFeatureManager _featureManager;
 
 
-        public ChessService()
+        //public ChessService()
+        //{
+        //    _options = new JsonSerializerOptions { Converters = { new PieceConverter() } };
+
+        //    // Initialize the game with a default state
+        //    var board = new Board
+        //    {
+        //        Id = 1,
+        //        Name = "Default Game",
+        //        Description = "Initial game state",
+        //        Pieces = InitializeDefaultPieces()
+        //    };
+        //    _currentGame = new Game(1, "Default Game", "active", board);
+        //}
+
+        public ChessService(IFeatureManager featureManager, AIService aiService = null)
         {
             _options = new JsonSerializerOptions { Converters = { new PieceConverter() } };
-
-            // Initialize the game with a default state
-            var board = new Board
-            {
-                Id = 1,
-                Name = "Default Game",
-                Description = "Initial game state",
-                Pieces = InitializeDefaultPieces()
-            };
-            _currentGame = new Game(1, "Default Game", "active", board);
-        }
-
-        public ChessService(AIService aiService)
-        {
-            _options = new JsonSerializerOptions { Converters = { new PieceConverter() } };
+            _featureManager = featureManager;
             _aiService = aiService;
+
+            // Log how the service was started
+            if (_aiService != null)
+            {
+                Console.WriteLine("ChessService started with AIService enabled.");
+            }
+            else
+            {
+                Console.WriteLine("ChessService started without AIService.");
+            }
+
 
             // Initialize the game with a default state
             var board = new Board

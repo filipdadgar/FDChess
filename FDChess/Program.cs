@@ -2,19 +2,33 @@
 using FDChess.Helper;
 using FDChess.Interfaces;
 using FDChess.Services;
+using Google.Api;
+using Microsoft.FeatureManagement;
+
 
 namespace FDChess
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.d
-            builder.Services.AddSingleton<AIService>();
-            builder.Services.AddSingleton<IChessService, ChessService>();
+            var configuration = builder.Configuration;
+            builder.Services.AddFeatureManagement(configuration.GetSection("FeatureManagement"));
 
+            var featureManager = builder.Services.BuildServiceProvider().GetRequiredService<IFeatureManager>();
+
+            // Add services to the container.
+            if (await featureManager.IsEnabledAsync("AIService"))
+            {
+                builder.Services.AddSingleton<AIService>();
+            }
+            builder.Services.AddSingleton<IChessService>(sp =>
+            {
+                var aiService = sp.GetService<AIService>();
+                return new ChessService(featureManager, aiService);
+            });
 
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -51,10 +65,9 @@ namespace FDChess
             app.UseAuthorization();
             app.UseCors("AllowAllOrigins");
 
-
             app.MapControllers();
 
-            app.Run();
+            await app.RunAsync();
         }
     }
 }
